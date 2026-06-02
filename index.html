@@ -266,6 +266,7 @@ input[type=number] { text-align: center; }
 // ➡ Collez ici l'URL de déploiement de votre Apps Script
 //   (Apps Script > Déployer > Gérer les déploiements > URL du service web)
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyralrvyUcH1TrKJ1gKI8h9Ryb8jxoemez5QPgzggPfKjB44NBrkpkjhYqqghx4rIBzOQ/exec";
+
 // Nom du club affiché dans l'app
 const CLUB_NAME = "Club Rotary";
 
@@ -441,7 +442,6 @@ const LABELS = ["Saumon entier 1kg"];
   </div>
 
   <div class="card" id="bon-content" style="display:none">
-    <!-- Logo & titre -->
     <div class="bon-header">
       <div>
         <div class="bon-title">Bon de commande<br>Saumon fumé 🐟</div>
@@ -515,7 +515,7 @@ const LABELS = ["Saumon entier 1kg"];
     <div id="scan-info" style="font-size:12px;color:#1D9E75;margin-top:6px;display:none"></div>
   </div>
 
-  <!-- Séparateur visuel et modification du statut de la commande -->
+  <!-- Modification du statut -->
   <div class="card no-print" style="margin-top:12px;">
     <div class="card-title">Modifier le statut de la commande</div>
     <div style="display:flex; gap:8px;">
@@ -529,7 +529,9 @@ const LABELS = ["Saumon entier 1kg"];
       </button>
     </div>
   </div>
-</div>
+
+</div><!-- fin #tab-bon -->
+
 <!-- ─── ONGLET CONFIG ──────────────────────────────────── -->
 <div id="tab-config" class="panel">
   <div class="card">
@@ -596,7 +598,8 @@ const LABELS = ["Saumon entier 1kg"];
     </ol>
   </div>
 </div>
-</div>
+
+</div><!-- fin .app -->
 
 <!-- ════════════════════════════════════════════════════════ -->
 <script>
@@ -610,25 +613,31 @@ window.addEventListener('load', () => {
   document.getElementById('hdr-title').textContent = CLUB_NAME + ' — Saumon Fumé';
   document.getElementById('hdr-sub').textContent   = CAMPAGNE + ' · Collecte commandes';
 
-  // 1. Restaurer l'URL Apps Script EN PREMIER (avant toute sync)
+  // Config URL sauvegardée
   const savedUrl = localStorage.getItem('rotary_url');
   if (savedUrl) document.getElementById('cfg-url').value = savedUrl;
 
-  // 2. Restaurer le vendeur
+  // ── Mémoire du vendeur ──────────────────────────────────
   const savedPrenom = localStorage.getItem('rot_prenom');
   const savedNom    = localStorage.getItem('rot_nom');
   if (savedPrenom) document.getElementById('rot-prenom').value = savedPrenom;
   if (savedNom)    document.getElementById('rot-nom').value    = savedNom;
 
+  // Écouter les changements pour mémoriser le vendeur
+  document.getElementById('rot-prenom').addEventListener('input', function(e) {
+    localStorage.setItem('rot_prenom', e.target.value);
+  });
+  document.getElementById('rot-nom').addEventListener('input', function(e) {
+    localStorage.setItem('rot_nom', e.target.value);
+  });
+
   buildQtyRows();
   updateSyncBadge('local');
   updateQueueCount();
-
-  // 3. Vider la file d'attente puis lancer la sync si vendeur connu
   if (queue.length > 0) flushQueue();
-  if ((savedPrenom || savedNom) && getScriptUrl()) {
-    syncFromSheet();
-  }
+
+  // Sync auto au démarrage si vendeur connu
+  if (savedPrenom || savedNom) syncFromSheet();
 });
 
 // ─── Build product rows ──────────────────────────────────────
@@ -679,7 +688,7 @@ async function saveOrder() {
     adresse  : v('cli-adresse'),
     tel      : v('cli-tel'),
     email    : v('cli-email'),
-    qtys,
+    qtys     : [row[8]],
     total    : qtys.reduce((s, q, i) => s + q * PRIX[i], 0),
     kg       : parseFloat(qtys.reduce((s, q, i) => s + q * POIDS[i], 0).toFixed(2)),
     paiement : document.getElementById('paiement').value,
@@ -749,40 +758,46 @@ async function flushQueue() {
   if (failed.length === 0) toast('File d\'attente synchronisée ✓', 'ok');
 }
 
-// ─── Sync from sheet ─────────────────────────────────────────
+// ─── Sync from sheet (filtré par vendeur) ────────────────────
 async function syncFromSheet() {
-  const syncDot = document.getElementById('sync-dot');
+  const syncDot   = document.getElementById('sync-dot');
   const syncLabel = document.getElementById('sync-label');
-  
-  // Changement d'état visuel : synchronisation en cours
-  syncDot.className = "sync-dot spin";
-  syncLabel.textContent = "Sync...";
+  syncDot.className    = 'sync-dot spin';
+  syncLabel.textContent = 'Sync...';
 
-  const rotarienName = document.getElementById('rot-prenom').value + " " + document.getElementById('rot-nom').value;
+  const rotarienName = document.getElementById('rot-prenom').value.trim()
+                     + ' '
+                     + document.getElementById('rot-nom').value.trim();
 
-  fetch(getScriptUrl(), {
-    method: "POST",
-    body: JSON.stringify({
-      action: "get_orders",
-      rotarien: rotarienName // Filtre envoyé au serveur
-    })
+  const url = getScriptUrl();
+  if (!url) {
+    syncDot.className    = 'sync-dot err';
+    syncLabel.textContent = 'Erreur';
+    toast('URL Apps Script manquante', 'err');
+    return;
+  }
+
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'get_orders', rotarien: rotarienName.trim() })
   })
   .then(res => res.json())
   .then(res => {
     if (res.success) {
-      orders = res.orders; // Met à jour la liste locale avec les données du Sheets
-      renderOrders();      // Re-génère l'affichage HTML sur le smartphone
-      syncDot.className = "sync-dot ok";
-      syncLabel.textContent = "À jour";
-      toast("Données synchronisées depuis Google Sheets !", "ok");
+      orders = res.orders;
+      saveLocal();
+      renderOrders();
+      syncDot.className    = 'sync-dot ok';
+      syncLabel.textContent = 'À jour';
+      toast('Données synchronisées depuis Google Sheets !', 'ok');
     } else {
       throw new Error(res.message);
     }
   })
-  .catch(err => {
-    syncDot.className = "sync-dot err";
-    syncLabel.textContent = "Erreur";
-    toast("Erreur de synchronisation", "err");
+  .catch(() => {
+    syncDot.className    = 'sync-dot err';
+    syncLabel.textContent = 'Erreur';
+    toast('Erreur de synchronisation', 'err');
   });
 }
 
@@ -900,74 +915,22 @@ async function shareBon() {
 function handleScan(e) {
   const file = e.target.files[0];
   if (!file) return;
-
   const ref = document.getElementById('bon-select').value;
-  if (!ref) { toast('Sélectionnez une commande avant de scanner', 'err'); return; }
-
-  // Aperçu local si image
   if (file.type.startsWith('image/')) {
     const reader = new FileReader();
     reader.onload = ev => {
       const img = document.getElementById('scan-preview');
-      img.src = ev.target.result;
-      img.style.display = 'block';
+      img.src = ev.target.result; img.style.display = 'block';
     };
     reader.readAsDataURL(file);
   }
-
-  // Lecture du fichier en base64 puis envoi vers Apps Script
-  const readerB64 = new FileReader();
-  readerB64.onload = async ev => {
-    // ev.target.result = "data:image/jpeg;base64,XXXX..."
-    const base64Full = ev.target.result;
-    const base64Data = base64Full.split(',')[1]; // Extraire uniquement la partie base64
-    const mimeType   = file.type || 'image/jpeg';
-
-    const scanInfo = document.getElementById('scan-info');
-    scanInfo.style.display = 'block';
-    scanInfo.textContent   = '⏳ Upload en cours…';
-
-    const url = getScriptUrl();
-    if (!url) {
-      scanInfo.textContent = '⚠️ URL Apps Script manquante — scan non sauvegardé sur Drive';
-      toast('URL Apps Script manquante', 'err');
-      return;
-    }
-
-    try {
-      updateSyncBadge('syncing');
-      const res  = await fetch(url, {
-        method : 'POST',
-        body   : JSON.stringify({
-          action   : 'upload_scan',
-          ref      : ref,
-          fileName : file.name,
-          fileData : base64Data,
-          mimeType : mimeType
-        })
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        // Mettre à jour l'objet commande local avec l'URL Drive
-        const o = orders.find(x => x.ref === ref);
-        if (o) { o.scan = data.url; saveLocal(); }
-
-        scanInfo.textContent = '✅ Scan uploadé sur Google Drive → ' + ref;
-        // Afficher un lien cliquable vers le fichier Drive
-        scanInfo.innerHTML = '✅ Scan sauvegardé : <a href="' + data.url + '" target="_blank" style="color:var(--green);text-decoration:underline">Voir sur Drive</a>';
-        updateSyncBadge('ok');
-        toast('Scan uploadé sur Google Drive ✓', 'ok');
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (err) {
-      scanInfo.textContent = '❌ Échec upload : ' + err.message;
-      updateSyncBadge('err');
-      toast('Erreur lors de l\'upload du scan', 'err');
-    }
-  };
-  readerB64.readAsDataURL(file);
+  if (ref) {
+    const o = orders.find(x => x.ref === ref);
+    if (o) { o.scan = file.name; saveLocal(); }
+  }
+  document.getElementById('scan-info').style.display = 'block';
+  document.getElementById('scan-info').textContent   = '✓ Fichier associé : ' + file.name + (ref ? ' → ' + ref : '');
+  toast('Bon scanné associé ✓', 'ok');
 }
 
 // ─── Export CSV ──────────────────────────────────────────────
@@ -992,9 +955,16 @@ function exportCSV() {
 // ─── Helpers ─────────────────────────────────────────────────
 function v(id) { return document.getElementById(id).value.trim(); }
 
+// ✅ resetForm : NE réinitialise PAS le vendeur (rot-prenom / rot-nom)
 function resetForm() {
-  ['cli-prenom','cli-nom','cli-adresse','cli-tel','cli-email','notes']  // ✅ vendeur conservé
+  ['cli-prenom','cli-nom','cli-adresse','cli-tel','cli-email','notes']
     .forEach(id => document.getElementById(id).value = '');
+  LABELS.forEach((_, i) => {
+    document.getElementById('qty' + i).value = 0;
+    document.getElementById('sub' + i).textContent = '—';
+  });
+  document.getElementById('total-price').textContent = '0 €';
+  document.getElementById('total-kg').textContent    = '0,0 kg';
 }
 
 function saveLocal()  { localStorage.setItem('rotary_orders', JSON.stringify(orders)); }
@@ -1008,10 +978,10 @@ function updateSyncBadge(state) {
   const dot = document.getElementById('sync-dot');
   const lbl = document.getElementById('sync-label');
   dot.className = 'sync-dot';
-  if (state === 'ok')      { dot.classList.add('ok');   lbl.textContent = 'Synchro ✓'; }
-  else if (state === 'err'){ dot.classList.add('err');  lbl.textContent = 'Hors-ligne'; }
+  if (state === 'ok')          { dot.classList.add('ok');   lbl.textContent = 'Synchro ✓'; }
+  else if (state === 'err')    { dot.classList.add('err');  lbl.textContent = 'Hors-ligne'; }
   else if (state === 'syncing'){ dot.classList.add('spin'); lbl.textContent = 'Sync…'; }
-  else                     { lbl.textContent = 'Local'; }
+  else                         { lbl.textContent = 'Local'; }
 }
 
 function updateQueueCount() {
@@ -1039,16 +1009,7 @@ function switchTab(name) {
   if (name === 'commandes') renderOrders();
   if (name === 'bon')       updateBonSelect();
 }
-// ─── MÉMOIRE DU VENDEUR (LOCALSTORAGE) ───────────────────────
-// Écouter les changements sur les champs prénom/nom pour les mémoriser
-document.getElementById('rot-prenom').addEventListener('input', function(e) {
-  localStorage.setItem("rot_prenom", e.target.value);
-});
 
-document.getElementById('rot-nom').addEventListener('input', function(e) {
-  localStorage.setItem("rot_nom", e.target.value);
-});
-// ─────────────────────────────────────────────────────────────
 // ─── Toast ───────────────────────────────────────────────────
 let toastTimer;
 function toast(msg, type = 'ok') {
@@ -1058,37 +1019,33 @@ function toast(msg, type = 'ok') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
 }
-// Fonction pour modifier le statut d'une commande existante
+
+// ─── Modification du statut ──────────────────────────────────
 async function changeOrderStatus() {
   const ref = document.getElementById('bon-select').value;
   if (!ref) { toast('Sélectionnez une commande d\'abord', 'err'); return; }
-  
+
   const nouveauStatut = document.getElementById('bon-update-statut').value;
   const url = getScriptUrl();
-  
   if (!url) { toast('URL Apps Script manquante', 'err'); return; }
-  
+
   updateSyncBadge('syncing');
   try {
-    const res = await fetch(url, {
+    const res  = await fetch(url, {
       method: 'POST',
       body: JSON.stringify({ action: 'update_status', ref: ref, statut: nouveauStatut })
     });
     const data = await res.json();
-    
+
     if (data.success) {
-      // 1. Mettre à jour le statut dans la liste locale des commandes
       const orderIndex = orders.findIndex(x => x.ref === ref);
       if (orderIndex !== -1) {
         orders[orderIndex].statut = nouveauStatut;
         saveLocal();
       }
-      
       updateSyncBadge('ok');
       toast('Statut mis à jour sur Google Sheets ✓', 'ok');
-      
-      // 2. Rafraîchir l'affichage
-      renderOrders(); 
+      renderOrders();
       renderBon();
     } else {
       throw new Error(data.message);
