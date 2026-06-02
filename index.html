@@ -515,19 +515,20 @@ const LABELS = ["Saumon entier 1kg"];
     <img id="scan-preview" class="scan-preview" alt="Aperçu du bon scanné" />
     <div id="scan-info" style="font-size:12px;color:#1D9E75;margin-top:6px;display:none"></div>
   </div>
-</div>
-<!-- Séparateur visuel et modification du statut de la commande -->
-<div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border);">
-  <label style="display:block; margin-bottom:5px;">Modifier le statut de la commande :</label>
-  <div style="display:flex; gap:8px;">
-    <select id="bon-update-statut" style="flex:1;">
-      <option value="en_attente">⏳ En attente</option>
-      <option value="payee">✅ Payée</option>
-      <option value="livree">📦 Livrée</option>
-    </select>
-    <button class="btn-outline" onclick="changeOrderStatus()" style="background: var(--green-lt); color: var(--green-dk); font-weight: 600;">
-      Mettre à jour
-    </button>
+
+  <!-- Séparateur visuel et modification du statut de la commande -->
+  <div class="card no-print" style="margin-top:12px;">
+    <div class="card-title">Modifier le statut de la commande</div>
+    <div style="display:flex; gap:8px;">
+      <select id="bon-update-statut" style="flex:1;">
+        <option value="en_attente">⏳ En attente</option>
+        <option value="payee">✅ Payée</option>
+        <option value="livree">📦 Livrée</option>
+      </select>
+      <button class="btn-outline" onclick="changeOrderStatus()" style="background: var(--green-lt); color: var(--green-dk); font-weight: 600;">
+        Mettre à jour
+      </button>
+    </div>
   </div>
 </div>
 <!-- ─── ONGLET CONFIG ──────────────────────────────────── -->
@@ -749,7 +750,7 @@ async function syncFromSheet() {
 
   const rotarienName = document.getElementById('rot-prenom').value + " " + document.getElementById('rot-nom').value;
 
-  fetch(APPS_SCRIPT_URL, {
+  fetch(getScriptUrl(), {
     method: "POST",
     body: JSON.stringify({
       action: "get_orders",
