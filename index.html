@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="theme-color" content="#1D9E75" />
+<title>Rotary — Saumon Fumé Noël 2024</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet" />
+<style>
+/* ─── Reset & base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --green:    #1D9E75;
+  --green-dk: #0F6E56;
+  --green-lt: #E1F5EE;
+  --amber-lt: #FAEEDA;
+  --amber:    #854F0B;
+  --blue-lt:  #E6F1FB;
+  --blue:     #185FA5;
+  --red-lt:   #FCEBEB;
+  --red:      #A32D2D;
+  --bg:       #F8F9FA;
+  --surface:  #FFFFFF;
+  --border:   #E2E4E7;
+  --text:     #1A1A1A;
+  --muted:    #6B7280;
+  --radius:   10px;
+  --shadow:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+body { background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ─── Layout ───────────────────────────────────────────── */
+.app { max-width: 540px; margin: 0 auto; padding: 0 0 80px; }
+
+/* ─── Header ───────────────────────────────────────────── */
+.app-header {
+  background: var(--green);
+  color: white;
+  padding: 16px 20px 12px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.header-icon { font-size: 26px; }
+.header-title { font-size: 16px; font-weight: 600; }
+.header-sub { font-size: 12px; opacity: 0.85; }
+.sync-badge {
+  margin-left: auto;
+  font-size: 11px;
+  background: rgba(255,255,255,0.2);
+  padding: 4px 10px; border-radius: 20px;
+  display: flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+}
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; }
+.sync-dot.ok  { background: #7FFFBA; }
+.sync-dot.err { background: #FF9999; }
+.sync-dot.spin { animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ─── Tab bar ──────────────────────────────────────────── */
+.tab-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 60px; z-index: 99;
+}
+.tab-btn {
+  padding: 10px 4px 8px;
+  border: none; background: transparent;
+  color: var(--muted);
+  font-family: inherit; font-size: 11px; font-weight: 500;
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; gap: 3px; transition: color 0.15s;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn svg { width: 20px; height: 20px; }
+.tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* ─── Panels ───────────────────────────────────────────── */
+.panel { display: none; padding: 16px; }
+.panel.active { display: block; }
+
+/* ─── Cards ────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 11px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.05em; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-title svg { width: 14px; height: 14px; }
+
+/* ─── Fields ───────────────────────────────────────────── */
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.field:last-child { margin-bottom: 0; }
+label { font-size: 13px; color: var(--muted); font-weight: 500; }
+input[type=text], input[type=email], input[type=tel],
+input[type=number], select, textarea {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit; font-size: 14px;
+  background: var(--surface); color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
+}
+textarea { resize: vertical; min-height: 64px; }
+input[type=number] { text-align: center; }
+
+/* ─── Qty rows ─────────────────────────────────────────── */
+.qty-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg); border-radius: 8px;
+  margin-bottom: 8px;
+}
+.qty-info { flex: 1; }
+.qty-label { font-size: 14px; font-weight: 500; }
+.qty-unit  { font-size: 12px; color: var(--muted); }
+.qty-subtotal { font-size: 13px; font-weight: 600; color: var(--green-dk); min-width: 52px; text-align: right; }
+.qty-row input[type=number] { width: 62px; padding: 7px 4px; }
+
+.total-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px;
+  background: var(--green-lt); border-radius: 8px; margin-top: 4px;
+}
+.total-bar .lbl { font-size: 13px; color: var(--green-dk); }
+.total-bar .amt { font-size: 20px; font-weight: 600; color: var(--green-dk); }
+
+/* ─── Buttons ──────────────────────────────────────────── */
+.btn-green {
+  width: 100%; padding: 13px;
+  background: var(--green); color: white; border: none;
+  border-radius: var(--radius); font-family: inherit;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn-green:hover { background: var(--green-dk); }
+.btn-green:active { transform: scale(0.98); }
+.btn-green:disabled { background: #aaa; cursor: not-allowed; }
+.btn-outline {
+  padding: 9px 16px; background: transparent;
+  border: 1px solid var(--border); border-radius: 8px;
+  font-family: inherit; font-size: 13px; color: var(--text);
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  transition: background 0.15s;
+}
+.btn-outline:hover { background: var(--bg); }
+
+/* ─── Notif toast ──────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #1A1A1A; color: white;
+  padding: 10px 18px; border-radius: 24px; font-size: 14px;
+  opacity: 0; transition: all 0.25s; z-index: 999; white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok   { background: var(--green-dk); }
+.toast.err  { background: var(--red); }
+
+/* ─── Stats grid ───────────────────────────────────────── */
+.stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
+.stat-val { font-size: 22px; font-weight: 600; color: var(--green); }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ─── Order list ───────────────────────────────────────── */
+.order-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 8px; cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.order-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--green-lt); display: flex; align-items: center;
+  justify-content: center; font-size: 13px; font-weight: 600;
+  color: var(--green-dk); flex-shrink: 0;
+}
+.order-name { font-size: 14px; font-weight: 600; }
+.order-meta { font-size: 12px; color: var(--muted); }
+.order-right { margin-left: auto; text-align: right; }
+.order-amount { font-size: 14px; font-weight: 600; }
+.badge {
+  display: inline-block; font-size: 11px;
+  padding: 2px 9px; border-radius: 20px; margin-top: 3px;
+}
+.badge-ok   { background: var(--green-lt); color: var(--green-dk); }
+.badge-wait { background: var(--amber-lt); color: var(--amber); }
+.badge-done { background: var(--blue-lt);  color: var(--blue); }
+
+/* ─── Bon de commande ──────────────────────────────────── */
+.bon-header { display: flex; justify-content: space-between; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.bon-title { font-size: 17px; font-weight: 600; }
+.bon-ref { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.bon-section { margin-bottom: 14px; }
+.bon-section-lbl { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.bon-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.bon-table th { background: var(--bg); padding: 6px 8px; text-align: left; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--border); }
+.bon-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); }
+.bon-total-row { display: flex; justify-content: space-between; padding-top: 10px; }
+.bon-total-row .lbl { font-size: 13px; color: var(--muted); }
+.bon-total-row .val { font-size: 16px; font-weight: 600; }
+.sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.sig-box { border: 1px dashed var(--border); border-radius: 8px; height: 60px; display: flex; align-items: flex-end; padding: 6px 8px; }
+.sig-lbl { font-size: 11px; color: var(--muted); }
+
+/* ─── Config panel ─────────────────────────────────────── */
+.config-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.config-row:last-child { border: none; }
+.config-label { font-size: 14px; }
+.config-sub { font-size: 12px; color: var(--muted); }
+.config-row input[type=text] { width: 200px; font-size: 13px; padding: 7px 9px; }
+.config-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; }
+
+/* ─── Print ─────────────────────────────────────────────── */
+@media print {
+  body { background: white; }
+  .app-header, .tab-bar, .no-print { display: none !important; }
+  .panel { display: block !important; padding: 0; }
+  .card { box-shadow: none; border: 1px solid #ddd; margin-bottom: 14px; }
+  #tab-saisie, #tab-commandes, #tab-config { display: none !important; }
+  #tab-bon { display: block !important; }
+}
+
+/* ─── Scan zone ─────────────────────────────────────────── */
+.scan-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 28px 16px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.scan-zone:hover { border-color: var(--green); background: var(--green-lt); }
+.scan-zone svg { width: 36px; height: 36px; color: var(--muted); display: block; margin: 0 auto 8px; }
+.scan-preview { max-width: 100%; border-radius: var(--radius); margin-top: 12px; display: none; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+.empty-state svg { width: 40px; height: 40px; margin: 0 auto 10px; display: block; opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CONFIGURATION — Modifier cette section               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<script>
+// ➡ Collez ici l'URL de déploiement de votre Apps Script
+//   (Apps Script > Déployer > Gérer les déploiements > URL du service web)
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/VOTRE_ID_ICI/exec";
+
+// Nom du club affiché dans l'app
+const CLUB_NAME = "Club Rotary";
+
+// Campagne
+const CAMPAGNE = "Noël 2024";
+
+// Prix unitaires (€)
+const PRIX = [15, 32, 58];
+
+// Poids (kg)
+const POIDS = [0.2, 0.5, 1.0];
+
+// Libellés produits
+const LABELS = ["Saumon tranché 200g", "Saumon entier 500g", "Saumon entier 1kg"];
+</script>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<!-- Header -->
+<div class="app-header">
+  <div class="header-icon">🐟</div>
+  <div>
+    <div class="header-title" id="hdr-title">Rotary — Saumon Fumé</div>
+    <div class="header-sub" id="hdr-sub">Noël 2024 · Collecte commandes</div>
+  </div>
+  <div class="sync-badge" id="sync-badge">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="sync-label">Local</span>
+  </div>
+</div>
+
+<!-- Tab bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('saisie')" id="tbtn-saisie">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Saisie
+  </button>
+  <button class="tab-btn" onclick="switchTab('commandes')" id="tbtn-commandes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    Commandes
+  </button>
+  <button class="tab-btn" onclick="switchTab('bon')" id="tbtn-bon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Bon
+  </button>
+  <button class="tab-btn" onclick="switchTab('config')" id="tbtn-config">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+    Config
+  </button>
+</div>
+
+<div class="app">
+<div id="toast" class="toast"></div>
+
+<!-- ─── ONGLET SAISIE ─────────────────────────────────── -->
+<div id="tab-saisie" class="panel active">
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Rotarien vendeur
+    </div>
+    <div class="row2">
+      <div class="field"><label>Prénom</label><input type="text" id="rot-prenom" placeholder="Jean" autocomplete="given-name" /></div>
+      <div class="field"><label>Nom</label><input type="text" id="rot-nom" placeholder="Dupont" autocomplete="family-name" /></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Client
+    </div>
+    <div class="row2">
+      <div class="field"><label>Prénom</label><input type="text" id="cli-prenom" placeholder="Marie" /></div>
+      <div class="field"><label>Nom</label><input type="text" id="cli-nom" placeholder="Martin" /></div>
+    </div>
+    <div class="field"><label>Adresse complète</label><input type="text" id="cli-adresse" placeholder="12 rue des Acacias, 13000 Marseille" /></div>
+    <div class="row2">
+      <div class="field"><label>Téléphone</label><input type="tel" id="cli-tel" placeholder="06 12 34 56 78" /></div>
+      <div class="field"><label>Email</label><input type="email" id="cli-email" placeholder="marie@mail.com" /></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Produits commandés
+    </div>
+    <div id="qty-rows"></div>
+    <div class="total-bar">
+      <span class="lbl">⚖️ Poids : <strong id="total-kg">0,0 kg</strong></span>
+      <span class="amt" id="total-price">0 €</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row2">
+      <div class="field">
+        <label>Mode de paiement</label>
+        <select id="paiement">
+          <option value="especes">💵 Espèces</option>
+          <option value="cheque">📝 Chèque</option>
+          <option value="virement">🏦 Virement</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Statut</label>
+        <select id="statut">
+          <option value="en_attente">⏳ En attente</option>
+          <option value="payee">✅ Payée</option>
+          <option value="livree">📦 Livrée</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes / Remarques</label>
+      <textarea id="notes" placeholder="Livraison souhaitée, allergies, remarques particulières…"></textarea>
+    </div>
+  </div>
+
+  <div style="padding: 0 0 8px;">
+    <button class="btn-green" id="btn-save" onclick="saveOrder()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Enregistrer la commande
+    </button>
+  </div>
+</div>
+
+<!-- ─── ONGLET COMMANDES ──────────────────────────────── -->
+<div id="tab-commandes" class="panel">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="stat-count">0</div><div class="stat-lbl">Commandes</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-kg">0</div><div class="stat-lbl">kg total</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-ca">0</div><div class="stat-lbl">€ CA</div></div>
+  </div>
+  <div style="display:flex; gap:8px; margin-bottom:12px;">
+    <button class="btn-outline no-print" onclick="syncFromSheet()" style="flex:1">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      Actualiser
+    </button>
+    <button class="btn-outline no-print" onclick="exportCSV()" style="flex:1">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </button>
+  </div>
+  <div id="orders-container">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+      Aucune commande enregistrée
+    </div>
+  </div>
+</div>
+
+<!-- ─── ONGLET BON ────────────────────────────────────── -->
+<div id="tab-bon" class="panel">
+  <div class="card no-print">
+    <div class="field">
+      <label>Sélectionner une commande</label>
+      <select id="bon-select" onchange="renderBon()">
+        <option value="">— choisir une commande —</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="btn-outline" onclick="window.print()" style="flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimer / PDF
+      </button>
+      <button class="btn-outline" onclick="shareBon()" style="flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Partager
+      </button>
+    </div>
+  </div>
+
+  <div class="card" id="bon-content" style="display:none">
+    <!-- Logo & titre -->
+    <div class="bon-header">
+      <div>
+        <div class="bon-title">Bon de commande<br>Saumon fumé 🐟</div>
+        <div class="bon-ref" id="bon-ref">—</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;font-weight:600" id="bon-club">Club Rotary</div>
+        <div style="font-size:12px;color:#6B7280" id="bon-date">—</div>
+        <div style="font-size:11px;color:#6B7280" id="bon-campagne">Noël 2024</div>
+      </div>
+    </div>
+
+    <div class="bon-section">
+      <div class="bon-section-lbl">Rotarien vendeur</div>
+      <div style="font-size:14px;font-weight:500" id="bon-vendeur">—</div>
+    </div>
+
+    <div class="bon-section">
+      <div class="bon-section-lbl">Client</div>
+      <div style="font-size:15px;font-weight:600" id="bon-client">—</div>
+      <div style="font-size:13px;color:#6B7280;margin-top:2px" id="bon-adresse">—</div>
+      <div style="font-size:13px;color:#6B7280" id="bon-contact">—</div>
+    </div>
+
+    <div class="bon-section">
+      <div class="bon-section-lbl">Détail de la commande</div>
+      <table class="bon-table">
+        <thead><tr><th>Produit</th><th style="text-align:center">Qté</th><th style="text-align:right">P.U.</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody id="bon-lines"></tbody>
+      </table>
+      <div class="bon-total-row">
+        <span class="lbl" id="bon-kg">Poids —</span>
+        <span class="val" id="bon-montant">— €</span>
+      </div>
+    </div>
+
+    <div class="bon-section">
+      <div class="bon-section-lbl">Paiement</div>
+      <div style="font-size:14px" id="bon-paiement">—</div>
+    </div>
+
+    <div style="background:#F8F9FA;border-radius:8px;padding:10px;font-size:13px;color:#6B7280;display:none" id="bon-notes-wrap">
+      <strong>Notes :</strong> <span id="bon-notes"></span>
+    </div>
+
+    <div class="sig-grid">
+      <div>
+        <div class="bon-section-lbl">Signature client</div>
+        <div class="sig-box"><span class="sig-lbl">Signature</span></div>
+      </div>
+      <div>
+        <div class="bon-section-lbl">Signature rotarien</div>
+        <div class="sig-box"><span class="sig-lbl">Signature</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone scan -->
+  <div class="card no-print">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Associer le bon signé (photo/scan)
+    </div>
+    <div class="scan-zone" onclick="document.getElementById('scan-input').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <div style="font-size:14px;font-weight:500;margin-bottom:3px">Prendre une photo ou sélectionner</div>
+      <div style="font-size:12px;color:#6B7280">JPG, PNG ou PDF — bon signé</div>
+    </div>
+    <input type="file" id="scan-input" accept="image/*,.pdf" capture="environment" style="display:none" onchange="handleScan(event)" />
+    <img id="scan-preview" class="scan-preview" alt="Aperçu du bon scanné" />
+    <div id="scan-info" style="font-size:12px;color:#1D9E75;margin-top:6px;display:none"></div>
+  </div>
+</div>
+
+<!-- ─── ONGLET CONFIG ──────────────────────────────────── -->
+<div id="tab-config" class="panel">
+  <div class="card">
+    <div class="card-title">Connexion Google Sheets</div>
+    <div class="config-row">
+      <div>
+        <div class="config-label">URL Apps Script</div>
+        <div class="config-sub">URL de déploiement du script</div>
+      </div>
+    </div>
+    <div class="field">
+      <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;font-size:12px;font-family:'DM Mono',monospace" />
+    </div>
+    <div class="config-row">
+      <div>
+        <div class="config-label">Synchronisation auto</div>
+        <div class="config-sub">Envoie chaque commande en temps réel</div>
+      </div>
+      <input type="checkbox" id="cfg-sync" checked />
+    </div>
+    <div class="config-row">
+      <div>
+        <div class="config-label">Mode hors-ligne</div>
+        <div class="config-sub">File d'attente si pas de connexion</div>
+      </div>
+      <input type="checkbox" id="cfg-offline" checked />
+    </div>
+    <button class="btn-green" onclick="testConnection()" style="margin-top:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+      Tester la connexion
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Données locales</div>
+    <div class="config-row">
+      <div>
+        <div class="config-label">Commandes en attente</div>
+        <div class="config-sub" id="queue-count">0 commande(s) à synchroniser</div>
+      </div>
+      <button class="btn-outline" onclick="flushQueue()">Envoyer</button>
+    </div>
+    <div class="config-row">
+      <div>
+        <div class="config-label">Vider les données locales</div>
+        <div class="config-sub">Supprime les commandes du téléphone</div>
+      </div>
+      <button class="btn-outline" onclick="clearLocal()" style="color:#A32D2D;border-color:#F0A0A0">Vider</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Instructions de déploiement</div>
+    <ol style="font-size:13px;color:#6B7280;line-height:1.9;padding-left:18px">
+      <li>Ouvrez <strong style="color:#1A1A1A">Google Sheets</strong> et créez un nouveau classeur</li>
+      <li>Copiez l'ID depuis l'URL (entre <code style="background:#F0F0F0;padding:1px 5px;border-radius:4px">/d/</code> et <code style="background:#F0F0F0;padding:1px 5px;border-radius:4px">/edit</code>)</li>
+      <li>Allez dans <strong style="color:#1A1A1A">Extensions › Apps Script</strong></li>
+      <li>Collez le contenu du fichier <code style="background:#F0F0F0;padding:1px 5px;border-radius:4px">Code.gs</code></li>
+      <li>Remplacez <code style="background:#F0F0F0;padding:1px 5px;border-radius:4px">VOTRE_SHEET_ID_ICI</code> par votre ID</li>
+      <li>Cliquez <strong style="color:#1A1A1A">Exécuter › setup()</strong> une première fois</li>
+      <li>Puis <strong style="color:#1A1A1A">Déployer › Nouveau déploiement › Application web</strong></li>
+      <li>Accès : <em>Tout le monde</em> — copiez l'URL</li>
+      <li>Collez l'URL dans le champ ci-dessus</li>
+    </ol>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<script>
+// ─── State ──────────────────────────────────────────────────
+let orders = JSON.parse(localStorage.getItem('rotary_orders') || '[]');
+let queue  = JSON.parse(localStorage.getItem('rotary_queue')  || '[]');
+let orderCounter = parseInt(localStorage.getItem('rotary_counter') || '0');
+
+// ─── Init ────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  document.getElementById('hdr-title').textContent = CLUB_NAME + ' — Saumon Fumé';
+  document.getElementById('hdr-sub').textContent   = CAMPAGNE + ' · Collecte commandes';
+
+  // Config URL sauvegardée
+  const savedUrl = localStorage.getItem('rotary_url');
+  if (savedUrl) document.getElementById('cfg-url').value = savedUrl;
+
+  buildQtyRows();
+  updateSyncBadge('local');
+  updateQueueCount();
+  if (queue.length > 0) flushQueue();
+});
+
+// ─── Build product rows ──────────────────────────────────────
+function buildQtyRows() {
+  const container = document.getElementById('qty-rows');
+  container.innerHTML = LABELS.map((lbl, i) => `
+    <div class="qty-row">
+      <div class="qty-info">
+        <div class="qty-label">🐟 ${lbl}</div>
+        <div class="qty-unit">${PRIX[i]} € / pièce</div>
+      </div>
+      <span class="qty-subtotal" id="sub${i}">—</span>
+      <input type="number" id="qty${i}" value="0" min="0" max="999" oninput="updateTotal()" />
+    </div>`).join('');
+}
+
+// ─── Total calc ──────────────────────────────────────────────
+function updateTotal() {
+  let total = 0, kg = 0;
+  LABELS.forEach((_, i) => {
+    const q = parseInt(document.getElementById('qty' + i).value) || 0;
+    const sub = q * PRIX[i];
+    total += sub; kg += q * POIDS[i];
+    document.getElementById('sub' + i).textContent = q > 0 ? sub + ' €' : '—';
+  });
+  document.getElementById('total-price').textContent = total + ' €';
+  document.getElementById('total-kg').textContent    = kg.toFixed(1) + ' kg';
+}
+
+// ─── Save order ──────────────────────────────────────────────
+async function saveOrder() {
+  const rp = v('rot-prenom'), rn = v('rot-nom');
+  const cp = v('cli-prenom'), cn = v('cli-nom');
+  if (!rp || !rn) { toast('Prénom/nom du rotarien requis', 'err'); return; }
+  if (!cp || !cn) { toast('Prénom/nom du client requis',   'err'); return; }
+
+  const qtys = LABELS.map((_, i) => parseInt(document.getElementById('qty' + i).value) || 0);
+  if (qtys.every(q => q === 0)) { toast('Ajoutez au moins un produit', 'err'); return; }
+
+  orderCounter++;
+  localStorage.setItem('rotary_counter', orderCounter);
+
+  const order = {
+    ref      : 'ROT-' + new Date().getFullYear() + '-' + String(orderCounter).padStart(3, '0'),
+    date     : new Date().toLocaleDateString('fr-FR'),
+    rotarien : rp + ' ' + rn,
+    client   : cp + ' ' + cn,
+    adresse  : v('cli-adresse'),
+    tel      : v('cli-tel'),
+    email    : v('cli-email'),
+    qtys,
+    total    : qtys.reduce((s, q, i) => s + q * PRIX[i], 0),
+    kg       : parseFloat(qtys.reduce((s, q, i) => s + q * POIDS[i], 0).toFixed(2)),
+    paiement : document.getElementById('paiement').value,
+    statut   : document.getElementById('statut').value,
+    notes    : v('notes'),
+    scan     : null
+  };
+
+  orders.push(order);
+  saveLocal();
+  toast('✓ Commande ' + order.ref + ' enregistrée !', 'ok');
+  resetForm();
+
+  // Sync vers Sheets
+  const url = getScriptUrl();
+  if (url && document.getElementById('cfg-sync').checked) {
+    await syncOrder(order, url);
+  } else {
+    queue.push(order);
+    saveQueue();
+    updateQueueCount();
+    updateSyncBadge('local');
+  }
+}
+
+// ─── Sync single order ───────────────────────────────────────
+async function syncOrder(order, url) {
+  updateSyncBadge('syncing');
+  try {
+    const res = await fetch(url, {
+      method : 'POST',
+      body   : JSON.stringify({ action: 'save_order', data: order })
+    });
+    const data = await res.json();
+    if (data.success) {
+      updateSyncBadge('ok');
+      toast('Synchronisé avec Google Sheets ✓', 'ok');
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (err) {
+    queue.push(order);
+    saveQueue();
+    updateQueueCount();
+    updateSyncBadge('err');
+    toast('Hors-ligne — commande en file d\'attente', 'err');
+  }
+}
+
+// ─── Flush queue ─────────────────────────────────────────────
+async function flushQueue() {
+  const url = getScriptUrl();
+  if (!url || queue.length === 0) return;
+  updateSyncBadge('syncing');
+  const failed = [];
+  for (const order of queue) {
+    try {
+      const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'save_order', data: order }) });
+      const data = await res.json();
+      if (!data.success) failed.push(order);
+    } catch (_) { failed.push(order); }
+  }
+  queue = failed;
+  saveQueue();
+  updateQueueCount();
+  updateSyncBadge(failed.length === 0 ? 'ok' : 'err');
+  if (failed.length === 0) toast('File d\'attente synchronisée ✓', 'ok');
+}
+
+// ─── Sync from sheet ─────────────────────────────────────────
+async function syncFromSheet() {
+  const url = getScriptUrl();
+  if (!url) { toast('Configurez l\'URL Apps Script', 'err'); return; }
+  updateSyncBadge('syncing');
+  try {
+    const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'get_orders' }) });
+    const data = await res.json();
+    if (data.success && data.orders) {
+      orders = data.orders;
+      saveLocal();
+      renderOrders();
+      updateSyncBadge('ok');
+      toast(data.orders.length + ' commande(s) rechargée(s)', 'ok');
+    }
+  } catch (_) {
+    updateSyncBadge('err');
+    toast('Impossible de contacter le serveur', 'err');
+    renderOrders();
+  }
+}
+
+// ─── Test connection ─────────────────────────────────────────
+async function testConnection() {
+  const url = document.getElementById('cfg-url').value.trim();
+  if (!url) { toast('Entrez l\'URL Apps Script', 'err'); return; }
+  localStorage.setItem('rotary_url', url);
+  updateSyncBadge('syncing');
+  try {
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.status === 'ok') {
+      updateSyncBadge('ok');
+      toast('Connexion établie ✓ — ' + data.message, 'ok');
+    } else { throw new Error(); }
+  } catch (_) {
+    updateSyncBadge('err');
+    toast('Connexion échouée — vérifiez l\'URL', 'err');
+  }
+}
+
+// ─── Render orders ───────────────────────────────────────────
+function renderOrders() {
+  const c = document.getElementById('orders-container');
+  if (!orders.length) {
+    c.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>Aucune commande</div>';
+    updateStats();
+    return;
+  }
+  c.innerHTML = [...orders].reverse().map(o => {
+    const initials = o.client.split(' ').map(w => w[0] || '').join('').slice(0, 2).toUpperCase();
+    const badgeCls = o.statut === 'payee' ? 'badge-ok' : o.statut === 'livree' ? 'badge-done' : 'badge-wait';
+    const badgeLbl = o.statut === 'payee' ? 'Payée' : o.statut === 'livree' ? 'Livrée' : 'En attente';
+    return `<div class="order-item" onclick="openBon('${o.ref}')">
+      <div class="avatar">${initials}</div>
+      <div>
+        <div class="order-name">${o.client}</div>
+        <div class="order-meta">${o.ref} · ${o.rotarien} · ${o.kg} kg</div>
+      </div>
+      <div class="order-right">
+        <div class="order-amount">${o.total} €</div>
+        <span class="badge ${badgeCls}">${badgeLbl}</span>
+      </div>
+    </div>`;
+  }).join('');
+  updateStats();
+  updateBonSelect();
+}
+
+// ─── Stats ───────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('stat-count').textContent = orders.length;
+  document.getElementById('stat-kg').textContent    = orders.reduce((s, o) => s + parseFloat(o.kg), 0).toFixed(1);
+  document.getElementById('stat-ca').textContent    = orders.reduce((s, o) => s + o.total, 0);
+}
+
+// ─── Bon de commande ─────────────────────────────────────────
+function updateBonSelect() {
+  const sel = document.getElementById('bon-select');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— choisir une commande —</option>' +
+    [...orders].reverse().map(o => `<option value="${o.ref}">${o.ref} — ${o.client}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function openBon(ref) {
+  switchTab('bon');
+  document.getElementById('bon-select').value = ref;
+  renderBon();
+}
+
+function renderBon() {
+  const ref = document.getElementById('bon-select').value;
+  const content = document.getElementById('bon-content');
+  if (!ref) { content.style.display = 'none'; return; }
+  const o = orders.find(x => x.ref === ref);
+  if (!o) return;
+  content.style.display = 'block';
+  document.getElementById('bon-ref').textContent      = 'Réf : ' + o.ref;
+  document.getElementById('bon-club').textContent     = CLUB_NAME;
+  document.getElementById('bon-date').textContent     = o.date || new Date().toLocaleDateString('fr-FR');
+  document.getElementById('bon-campagne').textContent = CAMPAGNE;
+  document.getElementById('bon-vendeur').textContent  = o.rotarien;
+  document.getElementById('bon-client').textContent   = o.client;
+  document.getElementById('bon-adresse').textContent  = o.adresse || '—';
+  document.getElementById('bon-contact').textContent  = [o.tel, o.email].filter(Boolean).join(' · ') || '—';
+  document.getElementById('bon-paiement').textContent = { especes: '💵 Espèces', cheque: '📝 Chèque', virement: '🏦 Virement' }[o.paiement] || '—';
+  document.getElementById('bon-kg').textContent       = 'Poids total : ' + o.kg + ' kg';
+  document.getElementById('bon-montant').textContent  = 'Total : ' + o.total + ' €';
+  const notesWrap = document.getElementById('bon-notes-wrap');
+  if (o.notes) {
+    document.getElementById('bon-notes').textContent = o.notes;
+    notesWrap.style.display = 'block';
+  } else { notesWrap.style.display = 'none'; }
+  const lines = o.qtys.map((q, i) => q > 0 ?
+    `<tr><td>${LABELS[i]}</td><td style="text-align:center">${q}</td><td style="text-align:right">${PRIX[i]} €</td><td style="text-align:right">${q * PRIX[i]} €</td></tr>` : ''
+  ).join('');
+  document.getElementById('bon-lines').innerHTML = lines || '<tr><td colspan="4" style="color:#6B7280">—</td></tr>';
+}
+
+async function shareBon() {
+  const ref = document.getElementById('bon-select').value;
+  if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'Bon de commande ' + ref, text: 'Club Rotary — Saumon fumé ' + CAMPAGNE + ' — ' + ref });
+    } catch (_) {}
+  } else {
+    window.print();
+  }
+}
+
+// ─── Scan ────────────────────────────────────────────────────
+function handleScan(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const ref = document.getElementById('bon-select').value;
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = document.getElementById('scan-preview');
+      img.src = ev.target.result; img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+  if (ref) {
+    const o = orders.find(x => x.ref === ref);
+    if (o) { o.scan = file.name; saveLocal(); }
+  }
+  document.getElementById('scan-info').style.display = 'block';
+  document.getElementById('scan-info').textContent   = '✓ Fichier associé : ' + file.name + (ref ? ' → ' + ref : '');
+  toast('Bon scanné associé ✓', 'ok');
+}
+
+// ─── Export CSV ──────────────────────────────────────────────
+function exportCSV() {
+  if (!orders.length) { toast('Aucune commande à exporter', 'err'); return; }
+  const header = 'Référence,Date,Rotarien,Client,Adresse,Téléphone,Email,' +
+    LABELS.map((l, i) => '"' + l + '"').join(',') +
+    ',Poids (kg),Total (€),Paiement,Statut,Notes';
+  const rows = orders.map(o =>
+    [o.ref, o.date, o.rotarien, o.client, o.adresse, o.tel, o.email,
+     ...o.qtys, o.kg, o.total, o.paiement, o.statut, o.notes]
+    .map(v => '"' + (v || '').toString().replace(/"/g, '""') + '"').join(',')
+  );
+  const csv  = [header, ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'commandes-saumon-' + CAMPAGNE.replace(/\s/g, '-') + '.csv' });
+  a.click(); URL.revokeObjectURL(url);
+  toast('Export CSV téléchargé ✓', 'ok');
+}
+
+// ─── Helpers ─────────────────────────────────────────────────
+function v(id) { return document.getElementById(id).value.trim(); }
+
+function resetForm() {
+  ['rot-prenom','rot-nom','cli-prenom','cli-nom','cli-adresse','cli-tel','cli-email','notes']
+    .forEach(id => document.getElementById(id).value = '');
+  LABELS.forEach((_, i) => { document.getElementById('qty' + i).value = 0; document.getElementById('sub' + i).textContent = '—'; });
+  document.getElementById('total-price').textContent = '0 €';
+  document.getElementById('total-kg').textContent    = '0,0 kg';
+}
+
+function saveLocal()  { localStorage.setItem('rotary_orders', JSON.stringify(orders)); }
+function saveQueue()  { localStorage.setItem('rotary_queue',  JSON.stringify(queue)); }
+function getScriptUrl() {
+  const f = document.getElementById('cfg-url').value.trim();
+  return f || localStorage.getItem('rotary_url') || APPS_SCRIPT_URL;
+}
+
+function updateSyncBadge(state) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot';
+  if (state === 'ok')      { dot.classList.add('ok');   lbl.textContent = 'Synchro ✓'; }
+  else if (state === 'err'){ dot.classList.add('err');  lbl.textContent = 'Hors-ligne'; }
+  else if (state === 'syncing'){ dot.classList.add('spin'); lbl.textContent = 'Sync…'; }
+  else                     { lbl.textContent = 'Local'; }
+}
+
+function updateQueueCount() {
+  document.getElementById('queue-count').textContent = queue.length + ' commande(s) à synchroniser';
+}
+
+function clearLocal() {
+  if (!confirm('Vider toutes les commandes locales ? Cette action est irréversible.')) return;
+  orders = []; queue = []; orderCounter = 0;
+  localStorage.removeItem('rotary_orders');
+  localStorage.removeItem('rotary_queue');
+  localStorage.removeItem('rotary_counter');
+  renderOrders();
+  updateQueueCount();
+  toast('Données locales effacées', 'ok');
+}
+
+function switchTab(name) {
+  ['saisie','commandes','bon','config'].forEach(t => {
+    document.getElementById('tab-' + t).classList.remove('active');
+    document.getElementById('tbtn-' + t).classList.remove('active');
+  });
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tbtn-' + name).classList.add('active');
+  if (name === 'commandes') renderOrders();
+  if (name === 'bon')       updateBonSelect();
+}
+
+// ─── Toast ───────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'toast ' + type + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
