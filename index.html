@@ -541,7 +541,7 @@ const LABELS = ["Saumon entier 1kg"];
       </div>
     </div>
     <div class="field">
-      <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;font-size:12px;font-family:'DM Mono',monospace" oninput="localStorage.setItem('rotary_url', this.value.trim())" />
+      <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;font-size:12px;font-family:'DM Mono',monospace" />
     </div>
     <div class="config-row">
       <div>
@@ -610,25 +610,14 @@ window.addEventListener('load', () => {
   document.getElementById('hdr-title').textContent = CLUB_NAME + ' — Saumon Fumé';
   document.getElementById('hdr-sub').textContent   = CAMPAGNE + ' · Collecte commandes';
 
-  // 1. Restaurer l'URL Apps Script EN PREMIER (avant toute sync)
+  // Config URL sauvegardée
   const savedUrl = localStorage.getItem('rotary_url');
   if (savedUrl) document.getElementById('cfg-url').value = savedUrl;
-
-  // 2. Restaurer le vendeur
-  const savedPrenom = localStorage.getItem('rot_prenom');
-  const savedNom    = localStorage.getItem('rot_nom');
-  if (savedPrenom) document.getElementById('rot-prenom').value = savedPrenom;
-  if (savedNom)    document.getElementById('rot-nom').value    = savedNom;
 
   buildQtyRows();
   updateSyncBadge('local');
   updateQueueCount();
-
-  // 3. Vider la file d'attente puis lancer la sync si vendeur connu
   if (queue.length > 0) flushQueue();
-  if ((savedPrenom || savedNom) && getScriptUrl()) {
-    syncFromSheet();
-  }
 });
 
 // ─── Build product rows ──────────────────────────────────────
@@ -710,9 +699,8 @@ async function syncOrder(order, url) {
   updateSyncBadge('syncing');
   try {
     const res = await fetch(url, {
-      method  : 'POST',
-      headers : { 'Content-Type': 'text/plain;charset=utf-8' },
-      body    : JSON.stringify({ action: 'save_order', data: order })
+      method : 'POST',
+      body   : JSON.stringify({ action: 'save_order', data: order })
     });
     const data = await res.json();
     if (data.success) {
@@ -738,7 +726,7 @@ async function flushQueue() {
   const failed = [];
   for (const order of queue) {
     try {
-      const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'save_order', data: order }) });
+      const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'save_order', data: order }) });
       const data = await res.json();
       if (!data.success) failed.push(order);
     } catch (_) { failed.push(order); }
@@ -763,7 +751,6 @@ async function syncFromSheet() {
 
   fetch(getScriptUrl(), {
     method: "POST",
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({
       action: "get_orders",
       rotarien: rotarienName // Filtre envoyé au serveur
@@ -902,75 +889,22 @@ async function shareBon() {
 function handleScan(e) {
   const file = e.target.files[0];
   if (!file) return;
-
   const ref = document.getElementById('bon-select').value;
-  if (!ref) { toast('Sélectionnez une commande avant de scanner', 'err'); return; }
-
-  // Aperçu local si image
   if (file.type.startsWith('image/')) {
     const reader = new FileReader();
     reader.onload = ev => {
       const img = document.getElementById('scan-preview');
-      img.src = ev.target.result;
-      img.style.display = 'block';
+      img.src = ev.target.result; img.style.display = 'block';
     };
     reader.readAsDataURL(file);
   }
-
-  // Lecture du fichier en base64 puis envoi vers Apps Script
-  const readerB64 = new FileReader();
-  readerB64.onload = async ev => {
-    // ev.target.result = "data:image/jpeg;base64,XXXX..."
-    const base64Full = ev.target.result;
-    const base64Data = base64Full.split(',')[1]; // Extraire uniquement la partie base64
-    const mimeType   = file.type || 'image/jpeg';
-
-    const scanInfo = document.getElementById('scan-info');
-    scanInfo.style.display = 'block';
-    scanInfo.textContent   = '⏳ Upload en cours…';
-
-    const url = getScriptUrl();
-    if (!url) {
-      scanInfo.textContent = '⚠️ URL Apps Script manquante — scan non sauvegardé sur Drive';
-      toast('URL Apps Script manquante', 'err');
-      return;
-    }
-
-    try {
-      updateSyncBadge('syncing');
-      const res  = await fetch(url, {
-        method : 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body   : JSON.stringify({
-          action   : 'upload_scan',
-          ref      : ref,
-          fileName : file.name,
-          fileData : base64Data,
-          mimeType : mimeType
-        })
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        // Mettre à jour l'objet commande local avec l'URL Drive
-        const o = orders.find(x => x.ref === ref);
-        if (o) { o.scan = data.url; saveLocal(); }
-
-        scanInfo.textContent = '✅ Scan uploadé sur Google Drive → ' + ref;
-        // Afficher un lien cliquable vers le fichier Drive
-        scanInfo.innerHTML = '✅ Scan sauvegardé : <a href="' + data.url + '" target="_blank" style="color:var(--green);text-decoration:underline">Voir sur Drive</a>';
-        updateSyncBadge('ok');
-        toast('Scan uploadé sur Google Drive ✓', 'ok');
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (err) {
-      scanInfo.textContent = '❌ Échec upload : ' + err.message;
-      updateSyncBadge('err');
-      toast('Erreur lors de l\'upload du scan', 'err');
-    }
-  };
-  readerB64.readAsDataURL(file);
+  if (ref) {
+    const o = orders.find(x => x.ref === ref);
+    if (o) { o.scan = file.name; saveLocal(); }
+  }
+  document.getElementById('scan-info').style.display = 'block';
+  document.getElementById('scan-info').textContent   = '✓ Fichier associé : ' + file.name + (ref ? ' → ' + ref : '');
+  toast('Bon scanné associé ✓', 'ok');
 }
 
 // ─── Export CSV ──────────────────────────────────────────────
@@ -1043,7 +977,21 @@ function switchTab(name) {
   if (name === 'bon')       updateBonSelect();
 }
 // ─── MÉMOIRE DU VENDEUR (LOCALSTORAGE) ───────────────────────
-// Écouter les changements sur les champs prénom/nom pour les mémoriser
+// 1. Au chargement de la page : récupérer le vendeur s'il existe
+document.addEventListener("DOMContentLoaded", function() {
+  const savedPrenom = localStorage.getItem("rot_prenom");
+  const savedNom = localStorage.getItem("rot_nom");
+
+  if (savedPrenom) document.getElementById('rot-prenom').value = savedPrenom;
+  if (savedNom) document.getElementById('rot-nom').value = savedNom;
+  
+  // Lancer une première synchronisation des commandes du vendeur automatiquement
+  if (savedPrenom || savedNom) {
+    syncFromSheet();
+  }
+});
+
+// 2. Écouter les changements sur les champs pour les mettre en mémoire
 document.getElementById('rot-prenom').addEventListener('input', function(e) {
   localStorage.setItem("rot_prenom", e.target.value);
 });
@@ -1075,7 +1023,6 @@ async function changeOrderStatus() {
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'update_status', ref: ref, statut: nouveauStatut })
     });
     const data = await res.json();
