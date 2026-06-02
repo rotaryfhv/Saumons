@@ -740,24 +740,39 @@ async function flushQueue() {
 
 // ─── Sync from sheet ─────────────────────────────────────────
 async function syncFromSheet() {
-  const url = getScriptUrl();
-  if (!url) { toast('Configurez l\'URL Apps Script', 'err'); return; }
-  updateSyncBadge('syncing');
-  try {
-    const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'get_orders' }) });
-    const data = await res.json();
-    if (data.success && data.orders) {
-      orders = data.orders;
-      saveLocal();
-      renderOrders();
-      updateSyncBadge('ok');
-      toast(data.orders.length + ' commande(s) rechargée(s)', 'ok');
+  const syncDot = document.getElementById('sync-dot');
+  const syncLabel = document.getElementById('sync-label');
+  
+  // Changement d'état visuel : synchronisation en cours
+  syncDot.className = "sync-dot spin";
+  syncLabel.textContent = "Sync...";
+
+  const rotarienName = document.getElementById('rot-prenom').value + " " + document.getElementById('rot-nom').value;
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "get_orders",
+      rotarien: rotarienName // Filtre envoyé au serveur
+    })
+  })
+  .then(res => res.json())
+  .then(res => {
+    if (res.success) {
+      orders = res.orders; // Met à jour la liste locale avec les données du Sheets
+      renderOrders();      // Re-génère l'affichage HTML sur le smartphone
+      syncDot.className = "sync-dot ok";
+      syncLabel.textContent = "À jour";
+      toast("Données synchronisées depuis Google Sheets !", "ok");
+    } else {
+      throw new Error(res.message);
     }
-  } catch (_) {
-    updateSyncBadge('err');
-    toast('Impossible de contacter le serveur', 'err');
-    renderOrders();
-  }
+  })
+  .catch(err => {
+    syncDot.className = "sync-dot err";
+    syncLabel.textContent = "Erreur";
+    toast("Erreur de synchronisation", "err");
+  });
 }
 
 // ─── Test connection ─────────────────────────────────────────
@@ -964,7 +979,30 @@ function switchTab(name) {
   if (name === 'commandes') renderOrders();
   if (name === 'bon')       updateBonSelect();
 }
+// ─── MÉMOIRE DU VENDEUR (LOCALSTORAGE) ───────────────────────
+// 1. Au chargement de la page : récupérer le vendeur s'il existe
+document.addEventListener("DOMContentLoaded", function() {
+  const savedPrenom = localStorage.getItem("rot_prenom");
+  const savedNom = localStorage.getItem("rot_nom");
 
+  if (savedPrenom) document.getElementById('rot-prenom').value = savedPrenom;
+  if (savedNom) document.getElementById('rot-nom').value = savedNom;
+  
+  // Lancer une première synchronisation des commandes du vendeur automatiquement
+  if (savedPrenom || savedNom) {
+    syncFromSheet();
+  }
+});
+
+// 2. Écouter les changements sur les champs pour les mettre en mémoire
+document.getElementById('rot-prenom').addEventListener('input', function(e) {
+  localStorage.setItem("rot_prenom", e.target.value);
+});
+
+document.getElementById('rot-nom').addEventListener('input', function(e) {
+  localStorage.setItem("rot_nom", e.target.value);
+});
+// ─────────────────────────────────────────────────────────────
 // ─── Toast ───────────────────────────────────────────────────
 let toastTimer;
 function toast(msg, type = 'ok') {
