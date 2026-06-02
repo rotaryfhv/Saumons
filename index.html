@@ -933,7 +933,6 @@ function v(id) { return document.getElementById(id).value.trim(); }
 function resetForm() {
   ['cli-prenom','cli-nom','cli-adresse','cli-tel','cli-email','notes']  // ✅ vendeur conservé
     .forEach(id => document.getElementById(id).value = '');
-  ...
 }
 
 function saveLocal()  { localStorage.setItem('rotary_orders', JSON.stringify(orders)); }
