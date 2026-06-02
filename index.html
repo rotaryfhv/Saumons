@@ -610,14 +610,25 @@ window.addEventListener('load', () => {
   document.getElementById('hdr-title').textContent = CLUB_NAME + ' — Saumon Fumé';
   document.getElementById('hdr-sub').textContent   = CAMPAGNE + ' · Collecte commandes';
 
-  // Config URL sauvegardée
+  // 1. Restaurer l'URL Apps Script EN PREMIER (avant toute sync)
   const savedUrl = localStorage.getItem('rotary_url');
   if (savedUrl) document.getElementById('cfg-url').value = savedUrl;
+
+  // 2. Restaurer le vendeur
+  const savedPrenom = localStorage.getItem('rot_prenom');
+  const savedNom    = localStorage.getItem('rot_nom');
+  if (savedPrenom) document.getElementById('rot-prenom').value = savedPrenom;
+  if (savedNom)    document.getElementById('rot-nom').value    = savedNom;
 
   buildQtyRows();
   updateSyncBadge('local');
   updateQueueCount();
+
+  // 3. Vider la file d'attente puis lancer la sync si vendeur connu
   if (queue.length > 0) flushQueue();
+  if ((savedPrenom || savedNom) && getScriptUrl()) {
+    syncFromSheet();
+  }
 });
 
 // ─── Build product rows ──────────────────────────────────────
@@ -1029,21 +1040,7 @@ function switchTab(name) {
   if (name === 'bon')       updateBonSelect();
 }
 // ─── MÉMOIRE DU VENDEUR (LOCALSTORAGE) ───────────────────────
-// 1. Au chargement de la page : récupérer le vendeur s'il existe
-document.addEventListener("DOMContentLoaded", function() {
-  const savedPrenom = localStorage.getItem("rot_prenom");
-  const savedNom = localStorage.getItem("rot_nom");
-
-  if (savedPrenom) document.getElementById('rot-prenom').value = savedPrenom;
-  if (savedNom) document.getElementById('rot-nom').value = savedNom;
-  
-  // Lancer une première synchronisation des commandes du vendeur automatiquement
-  if (savedPrenom || savedNom) {
-    syncFromSheet();
-  }
-});
-
-// 2. Écouter les changements sur les champs pour les mettre en mémoire
+// Écouter les changements sur les champs prénom/nom pour les mémoriser
 document.getElementById('rot-prenom').addEventListener('input', function(e) {
   localStorage.setItem("rot_prenom", e.target.value);
 });
