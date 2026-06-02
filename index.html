@@ -541,7 +541,7 @@ const LABELS = ["Saumon entier 1kg"];
       </div>
     </div>
     <div class="field">
-      <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;font-size:12px;font-family:'DM Mono',monospace" oninput="localStorage.setItem('rotary_url', this.value.trim())" />
+      <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;font-size:12px;font-family:'DM Mono',monospace" />
     </div>
     <div class="config-row">
       <div>
@@ -710,9 +710,8 @@ async function syncOrder(order, url) {
   updateSyncBadge('syncing');
   try {
     const res = await fetch(url, {
-      method  : 'POST',
-      headers : { 'Content-Type': 'text/plain;charset=utf-8' },
-      body    : JSON.stringify({ action: 'save_order', data: order })
+      method : 'POST',
+      body   : JSON.stringify({ action: 'save_order', data: order })
     });
     const data = await res.json();
     if (data.success) {
@@ -738,7 +737,7 @@ async function flushQueue() {
   const failed = [];
   for (const order of queue) {
     try {
-      const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'save_order', data: order }) });
+      const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'save_order', data: order }) });
       const data = await res.json();
       if (!data.success) failed.push(order);
     } catch (_) { failed.push(order); }
@@ -763,7 +762,6 @@ async function syncFromSheet() {
 
   fetch(getScriptUrl(), {
     method: "POST",
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({
       action: "get_orders",
       rotarien: rotarienName // Filtre envoyé au serveur
@@ -940,7 +938,6 @@ function handleScan(e) {
       updateSyncBadge('syncing');
       const res  = await fetch(url, {
         method : 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body   : JSON.stringify({
           action   : 'upload_scan',
           ref      : ref,
@@ -1075,7 +1072,6 @@ async function changeOrderStatus() {
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'update_status', ref: ref, statut: nouveauStatut })
     });
     const data = await res.json();
