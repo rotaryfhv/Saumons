@@ -931,11 +931,9 @@ function exportCSV() {
 function v(id) { return document.getElementById(id).value.trim(); }
 
 function resetForm() {
-  ['rot-prenom','rot-nom','cli-prenom','cli-nom','cli-adresse','cli-tel','cli-email','notes']
+  ['cli-prenom','cli-nom','cli-adresse','cli-tel','cli-email','notes']  // ✅ vendeur conservé
     .forEach(id => document.getElementById(id).value = '');
-  LABELS.forEach((_, i) => { document.getElementById('qty' + i).value = 0; document.getElementById('sub' + i).textContent = '—'; });
-  document.getElementById('total-price').textContent = '0 €';
-  document.getElementById('total-kg').textContent    = '0,0 kg';
+  ...
 }
 
 function saveLocal()  { localStorage.setItem('rotary_orders', JSON.stringify(orders)); }
