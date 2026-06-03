@@ -1007,7 +1007,9 @@ function renderBon() {
   content.style.display = 'block';
   document.getElementById('bon-ref').textContent      = 'Réf : ' + o.ref;
   document.getElementById('bon-club').textContent     = 'Rotary Club de Fourmies-Hirson-Vervins';
-  document.getElementById('bon-date').textContent     = o.date || new Date().toLocaleDateString('fr-FR');
+  const rawDate = o.date || '';
+const parsedDate = rawDate.includes('T') ? new Date(rawDate).toLocaleDateString('fr-FR') : rawDate;
+  document.getElementById('bon-date').textContent = parsedDate || new Date().toLocaleDateString('fr-FR');
   document.getElementById('bon-campagne').textContent = CAMPAGNE;
   document.getElementById('bon-vendeur').textContent  = o.rotarien;
   document.getElementById('bon-client').textContent   = o.client;
@@ -1017,7 +1019,8 @@ function renderBon() {
   // ← Mettre à jour le select statut avec le statut actuel de la commande
   const statutSel = document.getElementById('bon-update-statut');
   if (statutSel && o.statut) statutSel.value = o.statut;
-  document.getElementById('bon-kg').textContent       = 'Poids total : ' + o.kg + ' kg';
+const bonKg = o.kg > 0 ? parseFloat(o.kg) : (o.qtys || []).reduce((s, q, i) => s + (parseInt(q)||0) * (POIDS[i]||1), 0);
+document.getElementById('bon-kg').textContent = 'Poids total : ' + bonKg.toFixed(1) + ' kg';
   document.getElementById('bon-montant').textContent  = 'Total : ' + o.total + ' €';
   const notesWrap = document.getElementById('bon-notes-wrap');
   if (o.notes) {
