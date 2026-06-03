@@ -563,6 +563,10 @@ const LABELS = ["Saumon entier 1kg"];
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><circle cx="12" cy="20" r="1"/></svg>
       Tester la connexion
     </button>
+    <button class="btn-outline" onclick="testScanUpload()" style="margin-top:8px;width:100%">
+      🔍 Tester l'upload scan
+    </button>
+    <div id="scan-test-result" style="font-size:11px;font-family:'DM Mono',monospace;margin-top:8px;padding:8px;background:#F0F0F0;border-radius:6px;display:none;white-space:pre-wrap;word-break:break-all;color:#333"></div>
   </div>
 
   <div class="card">
@@ -983,14 +987,22 @@ function _compressImage(dataUrl, maxSizePx, quality) {
 async function _uploadScanData(ref, fileName, base64, mimeType) {
   const url = getScriptUrl();
   if (!url) throw new Error('no_url');
-  const res  = await fetch(url, {
-    method  : 'POST',
-    headers : { 'Content-Type': 'text/plain' },
-    body    : JSON.stringify({ action: 'upload_scan', ref, fileName, fileData: base64, mimeType })
-  });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.message || 'erreur serveur');
-  return data.url;
+  let rawText = '';
+  try {
+    const res  = await fetch(url, {
+      method  : 'POST',
+      headers : { 'Content-Type': 'text/plain' },
+      body    : JSON.stringify({ action: 'upload_scan', ref, fileName, fileData: base64, mimeType })
+    });
+    rawText = await res.text();
+    const data = JSON.parse(rawText);
+    if (!data.success) throw new Error(data.message || data.error || 'erreur serveur');
+    return data.url;
+  } catch (err) {
+    // Afficher la réponse brute pour diagnostic
+    const detail = rawText ? ' | Réponse: ' + rawText.slice(0, 200) : '';
+    throw new Error((err.message || 'erreur réseau') + detail);
+  }
 }
 
 function handleScan(e) {
@@ -1053,7 +1065,9 @@ function handleScan(e) {
         toast('URL Apps Script manquante', 'err');
       } else {
         _storeScanLocally(ref, fileName, base64, mimeType);
-        infoEl.textContent = '💾 Hors-ligne — scan sauvegardé, envoi au prochain sync';
+        infoEl.style.display = 'block';
+        infoEl.style.color   = '#A32D2D';
+        infoEl.textContent   = '⚠️ ' + err.message;
         toast('Hors-ligne — scan en file d\'attente', 'ok');
       }
     }
@@ -1162,6 +1176,43 @@ function toast(msg, type = 'ok') {
   el.className   = 'toast ' + type + ' show';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ─── Test upload scan ────────────────────────────────────────
+async function testScanUpload() {
+  const resultEl = document.getElementById('scan-test-result');
+  resultEl.style.display = 'block';
+  resultEl.textContent   = '⏳ Envoi d\'un scan de test…';
+
+  const url = getScriptUrl();
+  if (!url) { resultEl.textContent = '❌ URL Apps Script manquante'; return; }
+
+  // Créer une mini image 10x10 pixels en base64 (rouge uni)
+  const canvas = document.createElement('canvas');
+  canvas.width = 10; canvas.height = 10;
+  canvas.getContext('2d').fillStyle = '#1D9E75';
+  canvas.getContext('2d').fillRect(0, 0, 10, 10);
+  const testBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+  // Trouver la première commande disponible
+  const testRef = orders.length > 0 ? orders[orders.length - 1].ref : 'ROT-TEST-000';
+
+  try {
+    const res     = await fetch(url, {
+      method  : 'POST',
+      headers : { 'Content-Type': 'text/plain' },
+      body    : JSON.stringify({ action: 'upload_scan', ref: testRef, fileName: 'test_scan.jpg', fileData: testBase64, mimeType: 'image/jpeg' })
+    });
+    const rawText = await res.text();
+    resultEl.textContent = '📨 Réponse Apps Script :\n' + rawText;
+    try {
+      const data = JSON.parse(rawText);
+      if (data.success) resultEl.textContent += '\n\n✅ Upload OK — URL : ' + data.url;
+      else              resultEl.textContent += '\n\n❌ Erreur : ' + (data.message || data.error);
+    } catch(_) {}
+  } catch (err) {
+    resultEl.textContent = '❌ Erreur réseau : ' + err.message;
+  }
 }
 
 // ─── Modification du statut ──────────────────────────────────
