@@ -688,7 +688,7 @@ async function saveOrder() {
     adresse  : v('cli-adresse'),
     tel      : v('cli-tel'),
     email    : v('cli-email'),
-    qtys     : [row[8]],
+    qtys,
     total    : qtys.reduce((s, q, i) => s + q * PRIX[i], 0),
     kg       : parseFloat(qtys.reduce((s, q, i) => s + q * POIDS[i], 0).toFixed(2)),
     paiement : document.getElementById('paiement').value,
@@ -719,8 +719,9 @@ async function syncOrder(order, url) {
   updateSyncBadge('syncing');
   try {
     const res = await fetch(url, {
-      method : 'POST',
-      body   : JSON.stringify({ action: 'save_order', data: order })
+      method  : 'POST',
+      headers : { 'Content-Type': 'text/plain' },
+      body    : JSON.stringify({ action: 'save_order', data: order })
     });
     const data = await res.json();
     if (data.success) {
@@ -746,7 +747,7 @@ async function flushQueue() {
   const failed = [];
   for (const order of queue) {
     try {
-      const res  = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'save_order', data: order }) });
+      const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'save_order', data: order }) });
       const data = await res.json();
       if (!data.success) failed.push(order);
     } catch (_) { failed.push(order); }
@@ -778,8 +779,9 @@ async function syncFromSheet() {
   }
 
   fetch(url, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'get_orders', rotarien: rotarienName.trim() })
+    method  : 'POST',
+    headers : { 'Content-Type': 'text/plain' },
+    body    : JSON.stringify({ action: 'get_orders', rotarien: rotarienName.trim() })
   })
   .then(res => res.json())
   .then(res => {
@@ -830,16 +832,19 @@ function renderOrders() {
   }
   c.innerHTML = [...orders].reverse().map(o => {
     const initials = o.client.split(' ').map(w => w[0] || '').join('').slice(0, 2).toUpperCase();
-    const badgeCls = o.statut === 'payee' ? 'badge-ok' : o.statut === 'livree' ? 'badge-done' : 'badge-wait';
-    const badgeLbl = o.statut === 'payee' ? 'Payée' : o.statut === 'livree' ? 'Livrée' : 'En attente';
+    const statut = (o.statut || '').toLowerCase().trim();
+    const badgeCls = statut === 'payee' ? 'badge-ok' : statut === 'livree' ? 'badge-done' : 'badge-wait';
+    const badgeLbl = statut === 'payee' ? 'Payée' : statut === 'livree' ? 'Livrée' : 'En attente';
+    const kg = parseFloat(o.kg) || 0;
+    const total = parseFloat(o.total) || 0;
     return `<div class="order-item" onclick="openBon('${o.ref}')">
       <div class="avatar">${initials}</div>
       <div>
         <div class="order-name">${o.client}</div>
-        <div class="order-meta">${o.ref} · ${o.rotarien} · ${o.kg} kg</div>
+        <div class="order-meta">${o.ref} · ${o.rotarien} · ${kg.toFixed(2)} kg</div>
       </div>
       <div class="order-right">
-        <div class="order-amount">${o.total} €</div>
+        <div class="order-amount">${total.toFixed(2)} €</div>
         <span class="badge ${badgeCls}">${badgeLbl}</span>
       </div>
     </div>`;
@@ -851,8 +856,11 @@ function renderOrders() {
 // ─── Stats ───────────────────────────────────────────────────
 function updateStats() {
   document.getElementById('stat-count').textContent = orders.length;
-  document.getElementById('stat-kg').textContent    = orders.reduce((s, o) => s + parseFloat(o.kg), 0).toFixed(1);
-  document.getElementById('stat-ca').textContent    = orders.reduce((s, o) => s + o.total, 0);
+  const totalKg = orders.reduce((s, o) => s + (parseFloat(o.kg) || 0), 0);
+  const totalCA = orders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+  document.getElementById('stat-kg').textContent = totalKg.toFixed(1);
+  document.getElementById('stat-ca').textContent = totalCA.toFixed(2);
+}
 }
 
 // ─── Bon de commande ─────────────────────────────────────────
@@ -916,21 +924,64 @@ function handleScan(e) {
   const file = e.target.files[0];
   if (!file) return;
   const ref = document.getElementById('bon-select').value;
+
   if (file.type.startsWith('image/')) {
     const reader = new FileReader();
     reader.onload = ev => {
       const img = document.getElementById('scan-preview');
-      img.src = ev.target.result; img.style.display = 'block';
+      img.src = ev.target.result;
+      img.style.display = 'block';
     };
     reader.readAsDataURL(file);
   }
-  if (ref) {
-    const o = orders.find(x => x.ref === ref);
-    if (o) { o.scan = file.name; saveLocal(); }
+
+  // Upload vers Google Drive + mise à jour colonne O du Sheet
+  const url = getScriptUrl();
+  if (!ref) {
+    toast('Sélectionnez une commande avant de scanner', 'err');
+    return;
   }
-  document.getElementById('scan-info').style.display = 'block';
-  document.getElementById('scan-info').textContent   = '✓ Fichier associé : ' + file.name + (ref ? ' → ' + ref : '');
-  toast('Bon scanné associé ✓', 'ok');
+  if (!url) {
+    toast('URL Apps Script manquante', 'err');
+    return;
+  }
+
+  const infoEl = document.getElementById('scan-info');
+  infoEl.style.display = 'block';
+  infoEl.textContent   = '⏳ Upload en cours…';
+
+  const reader2 = new FileReader();
+  reader2.onload = async function(ev) {
+    // Extraire la partie base64 (après "data:image/jpeg;base64,")
+    const base64 = ev.target.result.split(',')[1];
+    try {
+      const res = await fetch(url, {
+        method  : 'POST',
+        headers : { 'Content-Type': 'text/plain' },
+        body    : JSON.stringify({
+          action   : 'upload_scan',
+          ref      : ref,
+          fileName : file.name,
+          fileData : base64,
+          mimeType : file.type
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Mettre à jour localement
+        const o = orders.find(x => x.ref === ref);
+        if (o) { o.scan = data.url; saveLocal(); }
+        infoEl.textContent = '✓ Scan uploadé sur Google Drive → ' + ref;
+        toast('Scan envoyé sur Google Drive ✓', 'ok');
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (err) {
+      infoEl.textContent = '⚠️ Erreur upload : ' + (err.message || 'inconnue');
+      toast('Erreur upload scan', 'err');
+    }
+  };
+  reader2.readAsDataURL(file);
 }
 
 // ─── Export CSV ──────────────────────────────────────────────
@@ -1032,8 +1083,9 @@ async function changeOrderStatus() {
   updateSyncBadge('syncing');
   try {
     const res  = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'update_status', ref: ref, statut: nouveauStatut })
+      method  : 'POST',
+      headers : { 'Content-Type': 'text/plain' },
+      body    : JSON.stringify({ action: 'update_status', ref: ref, statut: nouveauStatut })
     });
     const data = await res.json();
 
