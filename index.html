@@ -606,6 +606,7 @@ const LABELS = ["Saumon entier 1kg"];
 // ─── State ──────────────────────────────────────────────────
 let orders = JSON.parse(localStorage.getItem('rotary_orders') || '[]');
 let queue  = JSON.parse(localStorage.getItem('rotary_queue')  || '[]');
+let scanQueue = JSON.parse(localStorage.getItem('rotary_scan_queue') || '[]');
 let orderCounter = parseInt(localStorage.getItem('rotary_counter') || '0');
 
 // ─── Init ────────────────────────────────────────────────────
@@ -742,21 +743,46 @@ async function syncOrder(order, url) {
 // ─── Flush queue ─────────────────────────────────────────────
 async function flushQueue() {
   const url = getScriptUrl();
-  if (!url || queue.length === 0) return;
+  if (!url) return;
   updateSyncBadge('syncing');
-  const failed = [];
-  for (const order of queue) {
-    try {
-      const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'save_order', data: order }) });
-      const data = await res.json();
-      if (!data.success) failed.push(order);
-    } catch (_) { failed.push(order); }
+
+  // 1. Commandes en attente
+  if (queue.length > 0) {
+    const failed = [];
+    for (const order of queue) {
+      try {
+        const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'save_order', data: order }) });
+        const data = await res.json();
+        if (!data.success) failed.push(order);
+      } catch (_) { failed.push(order); }
+    }
+    queue = failed;
+    saveQueue();
+    updateQueueCount();
   }
-  queue = failed;
-  saveQueue();
-  updateQueueCount();
-  updateSyncBadge(failed.length === 0 ? 'ok' : 'err');
-  if (failed.length === 0) toast('File d\'attente synchronisée ✓', 'ok');
+
+  // 2. Scans en attente
+  if (scanQueue.length > 0) {
+    const failedScans = [];
+    for (const scan of scanQueue) {
+      try {
+        const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'upload_scan', ref: scan.ref, fileName: scan.fileName, fileData: scan.fileData, mimeType: scan.mimeType }) });
+        const data = await res.json();
+        if (data.success) {
+          const o = orders.find(x => x.ref === scan.ref);
+          if (o) { o.scan = data.url; saveLocal(); }
+        } else {
+          failedScans.push(scan);
+        }
+      } catch (_) { failedScans.push(scan); }
+    }
+    scanQueue = failedScans;
+    saveScanQueue();
+  }
+
+  const allOk = queue.length === 0 && scanQueue.length === 0;
+  updateSyncBadge(allOk ? 'ok' : 'err');
+  if (allOk) toast('File d\'attente synchronisée ✓', 'ok');
 }
 
 // ─── Sync from sheet (filtré par vendeur) ────────────────────
@@ -924,63 +950,71 @@ function handleScan(e) {
   if (!file) return;
   const ref = document.getElementById('bon-select').value;
 
-  if (file.type.startsWith('image/')) {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const img = document.getElementById('scan-preview');
-      img.src = ev.target.result;
-      img.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // Upload vers Google Drive + mise à jour colonne O du Sheet
-  const url = getScriptUrl();
   if (!ref) {
     toast('Sélectionnez une commande avant de scanner', 'err');
-    return;
-  }
-  if (!url) {
-    toast('URL Apps Script manquante', 'err');
     return;
   }
 
   const infoEl = document.getElementById('scan-info');
   infoEl.style.display = 'block';
-  infoEl.textContent   = '⏳ Upload en cours…';
+  infoEl.textContent   = '⏳ Lecture du fichier…';
 
-  const reader2 = new FileReader();
-  reader2.onload = async function(ev) {
-    // Extraire la partie base64 (après "data:image/jpeg;base64,")
-    const base64 = ev.target.result.split(',')[1];
+  // Lire une seule fois en base64, puis preview + upload depuis le même résultat
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    const dataUrl = ev.target.result;
+    const base64  = dataUrl.split(',')[1];
+
+    // Aperçu image
+    if (file.type.startsWith('image/')) {
+      const img = document.getElementById('scan-preview');
+      img.src = dataUrl;
+      img.style.display = 'block';
+    }
+
+    const url = getScriptUrl();
+    if (!url) {
+      // Stocker localement sans tenter l'upload
+      _storeScanLocally(ref, file.name, base64, file.type);
+      infoEl.textContent = '💾 Scan sauvegardé localement (synchronisez pour l\'envoyer)';
+      toast('Scan sauvegardé — envoi au prochain sync', 'ok');
+      return;
+    }
+
+    infoEl.textContent = '⏳ Upload en cours…';
     try {
-      const res = await fetch(url, {
+      const res  = await fetch(url, {
         method  : 'POST',
         headers : { 'Content-Type': 'text/plain' },
-        body    : JSON.stringify({
-          action   : 'upload_scan',
-          ref      : ref,
-          fileName : file.name,
-          fileData : base64,
-          mimeType : file.type
-        })
+        body    : JSON.stringify({ action: 'upload_scan', ref, fileName: file.name, fileData: base64, mimeType: file.type })
       });
       const data = await res.json();
       if (data.success) {
-        // Mettre à jour localement
         const o = orders.find(x => x.ref === ref);
         if (o) { o.scan = data.url; saveLocal(); }
-        infoEl.textContent = '✓ Scan uploadé sur Google Drive → ' + ref;
+        infoEl.textContent = '✓ Scan envoyé sur Google Drive → ' + ref;
         toast('Scan envoyé sur Google Drive ✓', 'ok');
       } else {
         throw new Error(data.message);
       }
     } catch (err) {
-      infoEl.textContent = '⚠️ Erreur upload : ' + (err.message || 'inconnue');
-      toast('Erreur upload scan', 'err');
+      // Échec réseau → mise en file d'attente
+      _storeScanLocally(ref, file.name, base64, file.type);
+      infoEl.textContent = '💾 Hors-ligne — scan sauvegardé, envoi au prochain sync';
+      toast('Hors-ligne — scan en file d\'attente', 'ok');
     }
   };
-  reader2.readAsDataURL(file);
+  reader.readAsDataURL(file);
+}
+
+function _storeScanLocally(ref, fileName, fileData, mimeType) {
+  // Remplacer si un scan existe déjà pour cette commande
+  const idx = scanQueue.findIndex(s => s.ref === ref);
+  const entry = { ref, fileName, fileData, mimeType };
+  if (idx >= 0) scanQueue[idx] = entry;
+  else          scanQueue.push(entry);
+  saveScanQueue();
+  updateQueueCount();
 }
 
 // ─── Export CSV ──────────────────────────────────────────────
@@ -1017,8 +1051,9 @@ function resetForm() {
   document.getElementById('total-kg').textContent    = '0,0 kg';
 }
 
-function saveLocal()  { localStorage.setItem('rotary_orders', JSON.stringify(orders)); }
-function saveQueue()  { localStorage.setItem('rotary_queue',  JSON.stringify(queue)); }
+function saveLocal()     { localStorage.setItem('rotary_orders',     JSON.stringify(orders)); }
+function saveQueue()     { localStorage.setItem('rotary_queue',      JSON.stringify(queue)); }
+function saveScanQueue() { localStorage.setItem('rotary_scan_queue', JSON.stringify(scanQueue)); }
 function getScriptUrl() {
   const f = document.getElementById('cfg-url').value.trim();
   return f || localStorage.getItem('rotary_url') || APPS_SCRIPT_URL;
@@ -1035,14 +1070,20 @@ function updateSyncBadge(state) {
 }
 
 function updateQueueCount() {
-  document.getElementById('queue-count').textContent = queue.length + ' commande(s) à synchroniser';
+  const total = queue.length + scanQueue.length;
+  const parts = [];
+  if (queue.length > 0)     parts.push(queue.length + ' commande(s)');
+  if (scanQueue.length > 0) parts.push(scanQueue.length + ' scan(s)');
+  document.getElementById('queue-count').textContent =
+    total === 0 ? '0 élément à synchroniser' : parts.join(', ') + ' à synchroniser';
 }
 
 function clearLocal() {
   if (!confirm('Vider toutes les commandes locales ? Cette action est irréversible.')) return;
-  orders = []; queue = []; orderCounter = 0;
+  orders = []; queue = []; scanQueue = []; orderCounter = 0;
   localStorage.removeItem('rotary_orders');
   localStorage.removeItem('rotary_queue');
+  localStorage.removeItem('rotary_scan_queue');
   localStorage.removeItem('rotary_counter');
   renderOrders();
   updateQueueCount();
