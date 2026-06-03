@@ -807,7 +807,14 @@ async function syncFromSheet() {
   .then(res => res.json())
   .then(res => {
     if (res.success) {
-      orders = res.orders;
+      // Fusionner : conserver les scans locaux si le Sheet n'en a pas encore
+      const localScanMap = {};
+      orders.forEach(o => { if (o.scan) localScanMap[o.ref] = o.scan; });
+
+      orders = res.orders.map(o => {
+        if (!o.scan && localScanMap[o.ref]) o.scan = localScanMap[o.ref];
+        return o;
+      });
       saveLocal();
       renderOrders();
       syncDot.className    = 'sync-dot ok';
@@ -925,6 +932,19 @@ function renderBon() {
     `<tr><td>${LABELS[i]}</td><td style="text-align:center">${q}</td><td style="text-align:right">${PRIX[i]} €</td><td style="text-align:right">${q * PRIX[i]} €</td></tr>` : ''
   ).join('');
   document.getElementById('bon-lines').innerHTML = lines || '<tr><td colspan="4" style="color:#6B7280">—</td></tr>';
+
+  // Afficher le lien scan si déjà uploadé — sans écraser une preview/upload en cours
+  const infoEl  = document.getElementById('scan-info');
+  const preview = document.getElementById('scan-preview');
+  const infoEnCours = infoEl.style.display !== 'none' && infoEl.textContent.startsWith('⏳');
+  if (!infoEnCours) {
+    if (o.scan && o.scan.startsWith('http')) {
+      infoEl.style.display = 'block';
+      infoEl.innerHTML = '✓ Scan déjà uploadé : <a href="' + o.scan + '" target="_blank">voir le fichier</a>';
+    } else if (!preview.src || !preview.src.startsWith('data:')) {
+      infoEl.style.display = 'none';
+    }
+  }
 }
 
 async function shareBon() {
@@ -1169,9 +1189,11 @@ async function changeOrderStatus() {
         saveLocal();
       }
       updateSyncBadge('ok');
-      toast('Statut mis à jour sur Google Sheets ✓', 'ok');
-      renderOrders();
-      renderBon();
+      toast('Statut mis à jour ✓', 'ok');
+      // Mettre à jour la liste commandes si visible, sans toucher au bon en cours
+      if (document.getElementById('tab-commandes').classList.contains('active')) {
+        renderOrders();
+      }
     } else {
       throw new Error(data.message);
     }
