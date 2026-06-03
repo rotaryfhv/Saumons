@@ -3,56 +3,66 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<meta name="theme-color" content="#1D9E75" />
-<title>Rotary — Saumon Fumé Noël 2026</title>
+<meta name="theme-color" content="#003399" />
+<title>Rotary Club Fourmies-Hirson-Vervins — Opération Saumons 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Source+Sans+3:wght@400;500;600;700&family=DM+Mono&display=swap" rel="stylesheet" />
 <style>
 /* ─── Reset & base ─────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --green:    #1D239E;
-  --green-dk: #121663;
-  --green-lt: #CACCEC;
-  --amber-lt: #FAEEDA;
-  --amber:    #854F0B;
-  --blue-lt:  #E6F1FB;
-  --blue:     #185FA5;
+  --rotary-blue:   #003399;
+  --rotary-blue-dk:#002277;
+  --rotary-blue-lt:#E8EEF8;
+  --rotary-gold:   #F7A800;
+  --rotary-gold-dk:#C98500;
+  --rotary-gold-lt:#FEF6E4;
+  --green:    #1B7F4F;
+  --green-lt: #E3F4EC;
+  --amber-lt: #FEF6E4;
+  --amber:    #8A5C00;
+  --blue-lt:  #E8EEF8;
+  --blue:     #003399;
   --red-lt:   #FCEBEB;
   --red:      #A32D2D;
-  --bg:       #F8F9FA;
+  --bg:       #F2F4F8;
   --surface:  #FFFFFF;
-  --border:   #E2E4E7;
-  --text:     #1A1A1A;
-  --muted:    #6B7280;
+  --border:   #D5DBE8;
+  --text:     #0D1B3E;
+  --muted:    #5A6478;
   --radius:   10px;
-  --shadow:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  font-family: 'DM Sans', system-ui, sans-serif;
+  --shadow:   0 1px 4px rgba(0,51,153,0.10), 0 1px 2px rgba(0,0,0,0.04);
+  font-family: 'Source Sans 3', system-ui, sans-serif;
 }
 body { background: var(--bg); color: var(--text); min-height: 100vh; }
-
-/* ─── Layout ───────────────────────────────────────────── */
 .app { max-width: 540px; margin: 0 auto; padding: 0 0 80px; }
 
 /* ─── Header ───────────────────────────────────────────── */
 .app-header {
-  background: var(--green);
-  color: white;
-  padding: 16px 20px 12px;
-  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, var(--rotary-blue-dk) 0%, var(--rotary-blue) 60%, #1A4DB8 100%);
+  color: white; padding: 0 16px;
+  display: flex; align-items: center; gap: 10px;
   position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(0,34,119,0.35);
+  min-height: 64px;
 }
-.header-icon { font-size: 26px; }
-.header-title { font-size: 16px; font-weight: 600; }
-.header-sub { font-size: 12px; opacity: 0.85; }
+.header-wheel { flex-shrink: 0; }
+.header-text { flex: 1; min-width: 0; overflow: hidden; }
+.header-club {
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--rotary-gold);
+  text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.header-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-sub { font-size: 11px; opacity: 0.80; margin-top: 1px; }
 .sync-badge {
-  margin-left: auto;
-  font-size: 11px;
-  background: rgba(255,255,255,0.2);
+  margin-left: auto; flex-shrink: 0; font-size: 11px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
   padding: 4px 10px; border-radius: 20px;
-  display: flex; align-items: center; gap: 5px;
-  white-space: nowrap;
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
 }
 .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; }
 .sync-dot.ok  { background: #7FFFBA; }
@@ -64,20 +74,18 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .tab-bar {
   display: grid; grid-template-columns: repeat(4, 1fr);
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  position: sticky; top: 60px; z-index: 99;
+  border-bottom: 2px solid var(--rotary-blue);
+  position: sticky; top: 64px; z-index: 99;
 }
 .tab-btn {
-  padding: 10px 4px 8px;
-  border: none; background: transparent;
-  color: var(--muted);
-  font-family: inherit; font-size: 11px; font-weight: 500;
+  padding: 10px 4px 8px; border: none; background: transparent;
+  color: var(--muted); font-family: inherit; font-size: 11px; font-weight: 600;
   cursor: pointer; display: flex; flex-direction: column;
   align-items: center; gap: 3px; transition: color 0.15s;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
 }
 .tab-btn svg { width: 20px; height: 20px; }
-.tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+.tab-btn.active { color: var(--rotary-blue); border-bottom-color: var(--rotary-gold); }
 
 /* ─── Panels ───────────────────────────────────────────── */
 .panel { display: none; padding: 16px; }
@@ -85,177 +93,166 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 
 /* ─── Cards ────────────────────────────────────────────── */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  margin-bottom: 12px; box-shadow: var(--shadow);
 }
 .card-title {
-  font-size: 11px; font-weight: 600;
-  color: var(--muted); text-transform: uppercase;
-  letter-spacing: 0.05em; margin-bottom: 12px;
+  font-size: 11px; font-weight: 700; color: var(--rotary-blue);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
   display: flex; align-items: center; gap: 6px;
 }
-.card-title svg { width: 14px; height: 14px; }
+.card-title svg { color: var(--rotary-gold); }
 
-/* ─── Fields ───────────────────────────────────────────── */
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-.field:last-child { margin-bottom: 0; }
-label { font-size: 13px; color: var(--muted); font-weight: 500; }
-input[type=text], input[type=email], input[type=tel],
-input[type=number], select, textarea {
-  padding: 9px 11px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-family: inherit; font-size: 14px;
-  background: var(--surface); color: var(--text);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  -webkit-appearance: none;
+/* ─── Stat cards ───────────────────────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px; text-align: center;
+  border-top: 3px solid var(--rotary-gold);
 }
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
-}
-textarea { resize: vertical; min-height: 64px; }
-input[type=number] { text-align: center; }
+.stat-val { font-size: 22px; font-weight: 700; color: var(--rotary-blue); font-family: 'Merriweather', serif; }
+.stat-lbl { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
 
-/* ─── Qty rows ─────────────────────────────────────────── */
-.qty-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px;
-  background: var(--bg); border-radius: 8px;
-  margin-bottom: 8px;
+/* ─── Form fields ──────────────────────────────────────── */
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 9px 11px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-family: inherit; font-size: 15px; color: var(--text);
+  background: var(--surface); transition: border-color 0.15s; appearance: none;
 }
-.qty-info { flex: 1; }
-.qty-label { font-size: 14px; font-weight: 500; }
-.qty-unit  { font-size: 12px; color: var(--muted); }
-.qty-subtotal { font-size: 13px; font-weight: 600; color: var(--green-dk); min-width: 52px; text-align: right; }
-.qty-row input[type=number] { width: 62px; padding: 7px 4px; }
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--rotary-blue);
+  box-shadow: 0 0 0 3px rgba(0,51,153,0.10);
+}
+.field textarea { resize: vertical; min-height: 64px; }
 
+/* ─── Qty row ──────────────────────────────────────────── */
+.qty-row { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.qty-row:last-child { border-bottom: none; }
+.qty-label { font-size: 14px; font-weight: 600; }
+.qty-price { font-size: 12px; color: var(--muted); }
+.qty-ctrl { display: flex; align-items: center; }
+.qty-ctrl button { width: 30px; height: 30px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 16px; font-weight: 700; color: var(--rotary-blue); transition: all .15s; display: flex; align-items: center; justify-content: center; }
+.qty-ctrl button:first-child { border-radius: 8px 0 0 8px; }
+.qty-ctrl button:last-child  { border-radius: 0 8px 8px 0; }
+.qty-ctrl button:hover { background: var(--rotary-blue-lt); }
+.qty-ctrl input { width: 44px; height: 30px; border: 1.5px solid var(--border); border-left: none; border-right: none; text-align: center; font-size: 15px; font-weight: 700; font-family: inherit; color: var(--text); background: var(--surface); }
+.qty-sub { font-size: 13px; font-weight: 700; color: var(--rotary-blue); min-width: 48px; text-align: right; }
+
+/* ─── Total bar ────────────────────────────────────────── */
 .total-bar {
+  background: linear-gradient(135deg, var(--rotary-blue) 0%, var(--rotary-blue-dk) 100%);
+  color: white; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 14px;
-  background: var(--green-lt); border-radius: 8px; margin-top: 4px;
 }
-.total-bar .lbl { font-size: 13px; color: var(--green-dk); }
-.total-bar .amt { font-size: 20px; font-weight: 600; color: var(--green-dk); }
+.total-bar .lbl { font-size: 13px; opacity: 0.85; font-weight: 600; }
+.total-bar .val { font-family: 'Merriweather', serif; font-size: 24px; font-weight: 700; color: var(--rotary-gold); }
+.total-bar .kg  { font-size: 12px; opacity: 0.75; }
 
 /* ─── Buttons ──────────────────────────────────────────── */
 .btn-green {
-  width: 100%; padding: 13px;
-  background: var(--green); color: white; border: none;
-  border-radius: var(--radius); font-family: inherit;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: background 0.15s, transform 0.1s;
+  width: 100%; padding: 13px; border: none;
+  background: linear-gradient(135deg, var(--rotary-blue) 0%, var(--rotary-blue-dk) 100%);
+  color: white; border-radius: var(--radius); font-family: inherit; font-size: 15px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  letter-spacing: 0.02em; box-shadow: 0 2px 8px rgba(0,51,153,0.25); transition: transform 0.1s;
 }
-.btn-green:hover { background: var(--green-dk); }
 .btn-green:active { transform: scale(0.98); }
-.btn-green:disabled { background: #aaa; cursor: not-allowed; }
 .btn-outline {
-  padding: 9px 16px; background: transparent;
-  border: 1px solid var(--border); border-radius: 8px;
-  font-family: inherit; font-size: 13px; color: var(--text);
-  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  padding: 10px 14px; border: 1.5px solid var(--rotary-blue);
+  background: white; color: var(--rotary-blue); border-radius: var(--radius);
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
   transition: background 0.15s;
 }
-.btn-outline:hover { background: var(--bg); }
-
-/* ─── Notif toast ──────────────────────────────────────── */
-.toast {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: #1A1A1A; color: white;
-  padding: 10px 18px; border-radius: 24px; font-size: 14px;
-  opacity: 0; transition: all 0.25s; z-index: 999; white-space: nowrap;
-  pointer-events: none;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast.ok   { background: var(--green-dk); }
-.toast.err  { background: var(--red); }
-
-/* ─── Stats grid ───────────────────────────────────────── */
-.stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; text-align: center; }
-.stat-val { font-size: 22px; font-weight: 600; color: var(--green); }
-.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.btn-outline:hover { background: var(--rotary-blue-lt); }
 
 /* ─── Order list ───────────────────────────────────────── */
 .order-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 11px 14px; background: var(--surface);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  margin-bottom: 8px; cursor: pointer;
-  transition: box-shadow 0.15s;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.1s;
 }
-.order-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.order-item:last-child { border-bottom: none; }
+.order-item:active { background: var(--rotary-blue-lt); margin: 0 -16px; padding: 12px 16px; }
 .avatar {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: var(--green-lt); display: flex; align-items: center;
-  justify-content: center; font-size: 13px; font-weight: 600;
-  color: var(--green-dk); flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--rotary-blue) 0%, #1A4DB8 100%);
+  color: white; font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; border: 2px solid var(--rotary-gold);
 }
 .order-name { font-size: 14px; font-weight: 600; }
-.order-meta { font-size: 12px; color: var(--muted); }
-.order-right { margin-left: auto; text-align: right; }
-.order-amount { font-size: 14px; font-weight: 600; }
-.badge {
-  display: inline-block; font-size: 11px;
-  padding: 2px 9px; border-radius: 20px; margin-top: 3px;
-}
-.badge-ok   { background: var(--green-lt); color: var(--green-dk); }
+.order-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.order-right { margin-left: auto; text-align: right; flex-shrink: 0; }
+.order-amount { font-size: 14px; font-weight: 700; color: var(--rotary-blue); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 3px; }
+.badge-ok   { background: var(--green-lt); color: var(--green); }
 .badge-wait { background: var(--amber-lt); color: var(--amber); }
 .badge-done { background: var(--blue-lt);  color: var(--blue); }
 
 /* ─── Bon de commande ──────────────────────────────────── */
-.bon-header { display: flex; justify-content: space-between; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-.bon-title { font-size: 17px; font-weight: 600; }
-.bon-ref { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
-.bon-section { margin-bottom: 14px; }
-.bon-section-lbl { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
-.bon-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.bon-table th { background: var(--bg); padding: 6px 8px; text-align: left; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--border); }
-.bon-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); }
-.bon-total-row { display: flex; justify-content: space-between; padding-top: 10px; }
-.bon-total-row .lbl { font-size: 13px; color: var(--muted); }
-.bon-total-row .val { font-size: 16px; font-weight: 600; }
-.sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-.sig-box { border: 1px dashed var(--border); border-radius: 8px; height: 60px; display: flex; align-items: flex-end; padding: 6px 8px; }
-.sig-lbl { font-size: 11px; color: var(--muted); }
-
-/* ─── Config panel ─────────────────────────────────────── */
-.config-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.config-row:last-child { border: none; }
-.config-label { font-size: 14px; }
-.config-sub { font-size: 12px; color: var(--muted); }
-.config-row input[type=text] { width: 200px; font-size: 13px; padding: 7px 9px; }
-.config-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; }
-
-/* ─── Print ─────────────────────────────────────────────── */
-@media print {
-  body { background: white; }
-  .app-header, .tab-bar, .no-print { display: none !important; }
-  .panel { display: block !important; padding: 0; }
-  .card { box-shadow: none; border: 1px solid #ddd; margin-bottom: 14px; }
-  #tab-saisie, #tab-commandes, #tab-config { display: none !important; }
-  #tab-bon { display: block !important; }
+.bon-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding-bottom: 14px; border-bottom: 2px solid var(--rotary-blue);
+  margin-bottom: 14px; gap: 12px;
 }
+.bon-logo-zone { display: flex; align-items: center; gap: 10px; }
+.bon-title { font-family: 'Merriweather', serif; font-size: 14px; font-weight: 900; color: var(--rotary-blue); line-height: 1.35; }
+.bon-club-name { font-size: 10px; font-weight: 700; color: var(--rotary-gold); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.bon-ref   { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+.bon-section { margin-bottom: 12px; }
+.bon-section-lbl { font-size: 10px; font-weight: 700; color: var(--rotary-blue); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.bon-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+.bon-table th { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 6px; border-bottom: 1.5px solid var(--rotary-blue); }
+.bon-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); }
+.bon-total-row { display: flex; justify-content: space-between; padding: 8px 6px; background: var(--rotary-blue-lt); border-radius: 6px; margin-top: 6px; border-left: 3px solid var(--rotary-gold); }
+.bon-total-row .lbl { font-size: 13px; font-weight: 600; color: var(--rotary-blue); }
+.bon-total-row .val { font-size: 15px; font-weight: 800; color: var(--rotary-blue); font-family: 'Merriweather', serif; }
+.sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.sig-box { border: 1.5px dashed var(--border); border-radius: 8px; height: 60px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; }
+.sig-lbl { font-size: 10px; color: var(--muted); }
 
-/* ─── Scan zone ─────────────────────────────────────────── */
+/* ─── Scan zone ────────────────────────────────────────── */
 .scan-zone {
-  border: 2px dashed var(--border); border-radius: var(--radius);
-  padding: 28px 16px; text-align: center; cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  border: 2px dashed var(--rotary-blue); border-radius: var(--radius);
+  padding: 20px; text-align: center; cursor: pointer;
+  background: var(--rotary-blue-lt); transition: background 0.15s;
 }
-.scan-zone:hover { border-color: var(--green); background: var(--green-lt); }
-.scan-zone svg { width: 36px; height: 36px; color: var(--muted); display: block; margin: 0 auto 8px; }
-.scan-preview { max-width: 100%; border-radius: var(--radius); margin-top: 12px; display: none; }
+.scan-zone:hover { background: #D5E0F5; }
+.scan-zone svg { width: 36px; height: 36px; color: var(--rotary-blue); opacity: 0.6; margin-bottom: 8px; }
+.scan-preview { width: 100%; border-radius: 8px; margin-top: 10px; display: none; border: 2px solid var(--rotary-blue); }
+
+/* ─── Toast ────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--rotary-blue); color: white;
+  padding: 10px 20px; border-radius: 24px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,51,153,0.3);
+  opacity: 0; transition: all 0.25s; z-index: 999; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.err  { background: var(--red); }
+
+/* ─── Config ───────────────────────────────────────────── */
+.cfg-section { font-size: 11px; font-weight: 700; color: var(--rotary-blue); text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 8px; }
+
+/* ─── Empty state ──────────────────────────────────────── */
 .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
 .empty-state svg { width: 40px; height: 40px; margin: 0 auto 10px; display: block; opacity: 0.4; }
-</style>
+
+/* ─── Print ────────────────────────────────────────────── */
+@media print {
+  .app-header, .tab-bar, .no-print { display: none !important; }
+  .panel { display: block !important; padding: 0; }
+  .card { box-shadow: none; border: none; page-break-inside: avoid; }
+  #tab-bon { display: block !important; }
+  #tab-saisie, #tab-commandes, #tab-config { display: none !important; }
+}
+
 </head>
 <body>
 
@@ -268,7 +265,7 @@ input[type=number] { text-align: center; }
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyralrvyUcH1TrKJ1gKI8h9Ryb8jxoemez5QPgzggPfKjB44NBrkpkjhYqqghx4rIBzOQ/exec";
 
 // Nom du club affiché dans l'app
-const CLUB_NAME = "Club Rotary";
+const CLUB_NAME = "Rotary Club de Fourmies-Hirson-Vervins";
 
 // Campagne
 const CAMPAGNE = "Noël 2026";
@@ -286,9 +283,39 @@ const LABELS = ["Saumon entier 1kg"];
 
 <!-- Header -->
 <div class="app-header">
-  <div class="header-icon">🐟</div>
-  <div>
-    <div class="header-title" id="hdr-title">Rotary — Saumon Fumé</div>
+  <div class="header-wheel">
+    <!-- Roue Rotary SVG -->
+    <svg width="44" height="44" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="48" fill="none" stroke="#F7A800" stroke-width="4"/>
+      <!-- Moyeu central -->
+      <circle cx="50" cy="50" r="10" fill="#F7A800"/>
+      <!-- 24 rayons -->
+      <g stroke="#F7A800" stroke-width="3">
+        <line x1="50" y1="40" x2="50" y2="5"/>
+        <line x1="50" y1="60" x2="50" y2="95"/>
+        <line x1="40" y1="50" x2="5" y2="50"/>
+        <line x1="60" y1="50" x2="95" y2="50"/>
+        <line x1="43" y1="43" x2="18" y2="18"/>
+        <line x1="57" y1="57" x2="82" y2="82"/>
+        <line x1="57" y1="43" x2="82" y2="18"/>
+        <line x1="43" y1="57" x2="18" y2="82"/>
+        <line x1="47" y1="40.5" x2="35" y2="7"/>
+        <line x1="53" y1="59.5" x2="65" y2="93"/>
+        <line x1="59.5" y1="47" x2="93" y2="35"/>
+        <line x1="40.5" y1="53" x2="7" y2="65"/>
+        <line x1="40.5" y1="47" x2="7" y2="35"/>
+        <line x1="59.5" y1="53" x2="93" y2="65"/>
+        <line x1="53" y1="40.5" x2="65" y2="7"/>
+        <line x1="47" y1="59.5" x2="35" y2="93"/>
+      </g>
+      <!-- Jante (anneau extérieur) -->
+      <circle cx="50" cy="50" r="36" fill="none" stroke="#F7A800" stroke-width="10" stroke-dasharray="0"/>
+      <circle cx="50" cy="50" r="36" fill="none" stroke="#003399" stroke-width="6"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <div class="header-club">Rotary Club Fourmies-Hirson-Vervins</div>
+    <div class="header-title">🐟 Opération Saumons</div>
     <div class="header-sub" id="hdr-sub">Noël 2026 · Collecte commandes</div>
   </div>
   <div class="sync-badge" id="sync-badge">
@@ -432,25 +459,56 @@ const LABELS = ["Saumon entier 1kg"];
     <div style="display:flex; gap:8px; margin-top:8px;">
       <button class="btn-outline" onclick="window.print()" style="flex:1">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Imprimer / PDF
+        Imprimer
       </button>
       <button class="btn-outline" onclick="shareBon()" style="flex:1">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         Partager
+      </button>
+      <button class="btn-outline" onclick="sendBonToSheet()" style="flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        → Tableur
       </button>
     </div>
   </div>
 
   <div class="card" id="bon-content" style="display:none">
     <div class="bon-header">
-      <div>
-        <div class="bon-title">Bon de commande<br>Saumon fumé 🐟</div>
-        <div class="bon-ref" id="bon-ref">—</div>
+      <div class="bon-logo-zone">
+        <!-- Roue Rotary sur le bon -->
+        <svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <circle cx="50" cy="50" r="48" fill="none" stroke="#F7A800" stroke-width="4"/>
+          <circle cx="50" cy="50" r="10" fill="#F7A800"/>
+          <g stroke="#F7A800" stroke-width="3">
+            <line x1="50" y1="40" x2="50" y2="5"/>
+            <line x1="50" y1="60" x2="50" y2="95"/>
+            <line x1="40" y1="50" x2="5" y2="50"/>
+            <line x1="60" y1="50" x2="95" y2="50"/>
+            <line x1="43" y1="43" x2="18" y2="18"/>
+            <line x1="57" y1="57" x2="82" y2="82"/>
+            <line x1="57" y1="43" x2="82" y2="18"/>
+            <line x1="43" y1="57" x2="18" y2="82"/>
+            <line x1="47" y1="40.5" x2="35" y2="7"/>
+            <line x1="53" y1="59.5" x2="65" y2="93"/>
+            <line x1="59.5" y1="47" x2="93" y2="35"/>
+            <line x1="40.5" y1="53" x2="7" y2="65"/>
+            <line x1="40.5" y1="47" x2="7" y2="35"/>
+            <line x1="59.5" y1="53" x2="93" y2="65"/>
+            <line x1="53" y1="40.5" x2="65" y2="7"/>
+            <line x1="47" y1="59.5" x2="35" y2="93"/>
+          </g>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#F7A800" stroke-width="10"/>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#003399" stroke-width="6"/>
+        </svg>
+        <div>
+          <div class="bon-club-name" id="bon-club">Rotary Club de Fourmies-Hirson-Vervins</div>
+          <div class="bon-title">Bon de commande<br>🐟 Opération Saumons</div>
+          <div class="bon-ref" id="bon-ref">—</div>
+        </div>
       </div>
-      <div style="text-align:right">
-        <div style="font-size:13px;font-weight:600" id="bon-club">Club Rotary</div>
-        <div style="font-size:12px;color:#6B7280" id="bon-date">—</div>
-        <div style="font-size:11px;color:#6B7280" id="bon-campagne">Noël 2026</div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:12px;color:#5A6478" id="bon-date">—</div>
+        <div style="font-size:11px;color:#5A6478" id="bon-campagne">Noël 2026</div>
       </div>
     </div>
 
@@ -504,6 +562,7 @@ const LABELS = ["Saumon entier 1kg"];
     <div class="card-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
       Associer le bon signé (photo/scan)
+      <span id="scan-ok-badge" style="display:none;margin-left:8px;background:#003399;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">✓ Scan OK</span>
     </div>
     <div class="scan-zone" onclick="document.getElementById('scan-input').click()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -512,7 +571,7 @@ const LABELS = ["Saumon entier 1kg"];
     </div>
     <input type="file" id="scan-input" accept="image/*,.pdf" capture="environment" style="display:none" onchange="handleScan(event)" />
     <img id="scan-preview" class="scan-preview" alt="Aperçu du bon scanné" />
-    <div id="scan-info" style="font-size:12px;color:#1D9E75;margin-top:6px;display:none"></div>
+    <div id="scan-info" style="font-size:12px;color:#003399;margin-top:6px;display:none"></div>
   </div>
 
   <!-- Modification du statut -->
@@ -588,12 +647,18 @@ const LABELS = ["Saumon entier 1kg"];
   </div>
 
   <div class="card">
-    <div class="card-title">GESTIONNAIRES DES COMMANDES</div>
-    <ul style="font-size:13px;color:#6B7280;line-height:1.9;padding-left:18px">
-      <li><strong style="color:#1A1A1A">Bernard Liné</strong> 06.88.47.69.37</li>
-      <li><strong style="color:#1A1A1A">Marie-Claire Dame</strong> 06.99.37.46.65</li></li>
-      <li><strong style="color:#1A1A1A">Jagielski Frédéric (site)</strong> 06.85.72.93.97</li>
-    </ul>
+    <div class="card-title">Instructions de déploiement</div>
+    <ol style="font-size:13px;color:#6B7280;line-height:1.9;padding-left:18px">
+      <li>Ouvrez <strong style="color:#1A1A1A">Google Sheets</strong> et créez un nouveau classeur</li>
+      <li>Copiez l'ID depuis l'URL (entre <code style="background:#F0F0F0;padding:1px 5px;border-radius:4px">/d/</code> et <code style="background:#F0F0F0;padding:1px 5px;border-radius:4px">/edit</code>)</li>
+      <li>Allez dans <strong style="color:#1A1A1A">Extensions › Apps Script</strong></li>
+      <li>Collez le contenu du fichier <code style="background:#F0F0F0;padding:1px 5px;border-radius:4px">Code.gs</code></li>
+      <li>Remplacez <code style="background:#F0F0F0;padding:1px 5px;border-radius:4px">VOTRE_SHEET_ID_ICI</code> par votre ID</li>
+      <li>Cliquez <strong style="color:#1A1A1A">Exécuter › setup()</strong> une première fois</li>
+      <li>Puis <strong style="color:#1A1A1A">Déployer › Nouveau déploiement › Application web</strong></li>
+      <li>Accès : <em>Tout le monde</em> — copiez l'URL</li>
+      <li>Collez l'URL dans le champ ci-dessus</li>
+    </ol>
   </div>
 </div>
 
@@ -609,7 +674,7 @@ let orderCounter = parseInt(localStorage.getItem('rotary_counter') || '0');
 
 // ─── Init ────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  document.getElementById('hdr-title').textContent = CLUB_NAME + ' — Saumon Fumé';
+  // header-title is static HTML
   document.getElementById('hdr-sub').textContent   = CAMPAGNE + ' · Collecte commandes';
 
   // Config URL sauvegardée
@@ -911,7 +976,7 @@ function renderBon() {
   if (!o) return;
   content.style.display = 'block';
   document.getElementById('bon-ref').textContent      = 'Réf : ' + o.ref;
-  document.getElementById('bon-club').textContent     = CLUB_NAME;
+  document.getElementById('bon-club').textContent     = 'Rotary Club de Fourmies-Hirson-Vervins';
   document.getElementById('bon-date').textContent     = o.date || new Date().toLocaleDateString('fr-FR');
   document.getElementById('bon-campagne').textContent = CAMPAGNE;
   document.getElementById('bon-vendeur').textContent  = o.rotarien;
@@ -931,29 +996,119 @@ function renderBon() {
   ).join('');
   document.getElementById('bon-lines').innerHTML = lines || '<tr><td colspan="4" style="color:#6B7280">—</td></tr>';
 
-  // Afficher le lien scan si déjà uploadé — sans écraser une preview/upload en cours
+  // Badge Scan OK + lien si déjà uploadé
+  const badge   = document.getElementById('scan-ok-badge');
   const infoEl  = document.getElementById('scan-info');
   const preview = document.getElementById('scan-preview');
   const infoEnCours = infoEl.style.display !== 'none' && infoEl.textContent.startsWith('⏳');
   if (!infoEnCours) {
     if (o.scan && o.scan.startsWith('http')) {
+      badge.style.display  = 'inline';
       infoEl.style.display = 'block';
+      infoEl.style.color   = '#003399';
       infoEl.innerHTML = '✓ Scan déjà uploadé : <a href="' + o.scan + '" target="_blank">voir le fichier</a>';
-    } else if (!preview.src || !preview.src.startsWith('data:')) {
-      infoEl.style.display = 'none';
+    } else {
+      badge.style.display = 'none';
+      if (!preview.src || !preview.src.startsWith('data:')) {
+        infoEl.style.display = 'none';
+      }
     }
   }
+}
+
+// ─── Générer le bon en base64 (capture HTML→canvas→JPEG) ─────
+async function _captureBonBase64() {
+  // On utilise html2canvas si dispo, sinon fallback texte
+  const bonEl = document.getElementById('bon-content');
+  if (window.html2canvas) {
+    const canvas = await html2canvas(bonEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+  }
+  return null;
+}
+
+function _bonFileName(o) {
+  // "NomClient-PrenomClient-NomVendeur-AAAAMMJJ.jpg"
+  const clean = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  const parts  = (o.client || '').trim().split(/\s+/);
+  const prenom = clean(parts.slice(1).join(' ') || parts[0]);
+  const nom    = clean(parts[0]);
+  const vendeurParts = (o.rotarien || '').trim().split(/\s+/);
+  const vendeur = clean(vendeurParts[0]);
+  const d = new Date();
+  const date = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  return nom + '-' + prenom + '-' + vendeur + '-' + date;
 }
 
 async function shareBon() {
   const ref = document.getElementById('bon-select').value;
   if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
+  const o = orders.find(x => x.ref === ref);
+  if (!o) return;
+
+  const fileName = _bonFileName(o) + '.jpg';
+  const text = [
+    'Club Rotary — Saumon fumé ' + CAMPAGNE,
+    'Réf : ' + o.ref,
+    'Client : ' + o.client,
+    'Poids : ' + o.kg + ' kg — Total : ' + o.total + ' €',
+    'Paiement : ' + (o.paiement || '—')
+  ].join('\n');
+
+  // Essayer de joindre le bon en image via Web Share API
   if (navigator.share) {
-    try {
-      await navigator.share({ title: 'Bon de commande ' + ref, text: 'Club Rotary — Saumon fumé ' + CAMPAGNE + ' — ' + ref });
-    } catch (_) {}
-  } else {
-    window.print();
+    toast('Génération du bon…', 'ok');
+    const base64 = await _captureBonBase64();
+    if (base64 && navigator.canShare) {
+      try {
+        const byteArr = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+        const file    = new File([byteArr], fileName, { type: 'image/jpeg' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: 'Bon ' + ref, text, files: [file] });
+          return;
+        }
+      } catch (_) {}
+    }
+    // Fallback sans fichier
+    try { await navigator.share({ title: 'Bon ' + ref, text }); return; } catch (_) {}
+  }
+  window.print();
+}
+
+// ─── Envoyer le bon (image) dans le tableur ───────────────────
+async function sendBonToSheet() {
+  const ref = document.getElementById('bon-select').value;
+  if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
+  const o = orders.find(x => x.ref === ref);
+  if (!o) return;
+
+  const url = getScriptUrl();
+  if (!url) { toast('URL Apps Script manquante', 'err'); return; }
+
+  toast('Génération du bon…', 'ok');
+  const base64 = await _captureBonBase64();
+  if (!base64) {
+    toast('Impossible de générer l\'image du bon', 'err');
+    return;
+  }
+
+  const fileName = _bonFileName(o) + '.jpg';
+  const infoEl = document.getElementById('scan-info');
+  infoEl.style.display = 'block';
+  infoEl.style.color   = '#003399';
+  infoEl.textContent   = '⏳ Envoi du bon au tableur…';
+
+  try {
+    const fileUrl = await _uploadScanData(ref, fileName, base64, 'image/jpeg');
+    const scanOk = orders.find(x => x.ref === ref);
+    if (scanOk) { scanOk.scan = fileUrl; saveLocal(); }
+    infoEl.textContent = '✓ Bon envoyé sur Google Drive → ' + ref;
+    document.getElementById('scan-ok-badge').style.display = 'inline';
+    toast('Bon envoyé au tableur ✓', 'ok');
+  } catch (err) {
+    infoEl.style.color = '#A32D2D';
+    infoEl.textContent = '⚠️ ' + err.message;
+    toast('Erreur envoi tableur', 'err');
   }
 }
 
@@ -1028,7 +1183,8 @@ function handleScan(e) {
       dataUrl  = await _compressImage(dataUrl, 1200, 0.7);
       base64   = dataUrl.split(',')[1];
       mimeType = 'image/jpeg';
-      fileName = file.name.replace(/\.[^.]+$/, '') + '_compressed.jpg';
+      const oRef = orders.find(x => x.ref === ref);
+      fileName = (oRef ? _bonFileName(oRef) : ref) + '.jpg';
 
       const sizeKo = Math.round(base64.length * 0.75 / 1024);
       infoEl.textContent = '⏳ Upload en cours… (' + sizeKo + ' Ko)';
@@ -1052,7 +1208,9 @@ function handleScan(e) {
       const fileUrl = await _uploadScanData(ref, fileName, base64, mimeType);
       const o = orders.find(x => x.ref === ref);
       if (o) { o.scan = fileUrl; saveLocal(); }
-      infoEl.textContent = '✓ Scan envoyé sur Google Drive → ' + ref;
+      infoEl.style.color   = '#003399';
+      infoEl.textContent   = '✓ Scan envoyé sur Google Drive → ' + ref;
+      document.getElementById('scan-ok-badge').style.display = 'inline';
       toast('Scan envoyé ✓', 'ok');
     } catch (err) {
       if (err.message === 'no_url') {
@@ -1184,7 +1342,7 @@ async function testScanUpload() {
   // Créer une mini image 10x10 pixels en base64 (rouge uni)
   const canvas = document.createElement('canvas');
   canvas.width = 10; canvas.height = 10;
-  canvas.getContext('2d').fillStyle = '#1D9E75';
+  canvas.getContext('2d').fillStyle = '#003399';
   canvas.getContext('2d').fillRect(0, 0, 10, 10);
   const testBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
 
@@ -1248,5 +1406,6 @@ async function changeOrderStatus() {
   }
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
