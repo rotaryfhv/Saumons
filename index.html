@@ -102,7 +102,7 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
   text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
   display: flex; align-items: center; gap: 6px;
 }
-.card-title svg { color: var(--rotary-gold); }
+.card-title svg { color: var(--rotary-gold); width: 15px; height: 15px; flex-shrink: 0; }
 
 /* ─── Stat cards ───────────────────────────────────────── */
 .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
@@ -252,6 +252,19 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
   #tab-bon { display: block !important; }
   #tab-saisie, #tab-commandes, #tab-config { display: none !important; }
 }
+
+
+/* ─── Grid 2 colonnes ──────────────────────────────────── */
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ─── Total bar amt (alias de val) ─────────────────────── */
+.total-bar .amt { font-family: 'Merriweather', serif; font-size: 24px; font-weight: 700; color: var(--rotary-gold); }
+
+/* ─── Config rows ───────────────────────────────────────── */
+.config-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.config-row:last-child { border-bottom: none; }
+.config-row label { font-size: 14px; font-weight: 500; }
+.config-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--rotary-blue); cursor: pointer; }
 
 </style>
 </head>
