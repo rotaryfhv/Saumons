@@ -943,7 +943,9 @@ function renderOrders() {
     const statut = (o.statut || '').toLowerCase().trim();
     const badgeCls = statut === 'payee' ? 'badge-ok' : statut === 'livree' ? 'badge-done' : 'badge-wait';
     const badgeLbl = statut === 'payee' ? 'Payée' : statut === 'livree' ? 'Livrée' : 'En attente';
-    const kg = parseFloat(o.kg) || 0;
+    const kg = (parseFloat(o.kg) > 0)
+  ? parseFloat(o.kg)
+  : (o.qtys || []).reduce((s, q, i) => s + (parseInt(q)||0) * (POIDS[i]||1), 0);
     const total = parseFloat(o.total) || 0;
     return `<div class="order-item" onclick="openBon('${o.ref}')">
       <div class="avatar">${initials}</div>
