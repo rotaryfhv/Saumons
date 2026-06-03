@@ -135,11 +135,11 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .qty-label { font-size: 14px; font-weight: 600; }
 .qty-price { font-size: 12px; color: var(--muted); }
 .qty-ctrl { display: flex; align-items: center; }
-.qty-ctrl button { width: 30px; height: 30px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 16px; font-weight: 700; color: var(--rotary-blue); transition: all .15s; display: flex; align-items: center; justify-content: center; }
+.qty-ctrl button { width: 36px; height: 36px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 18px; font-weight: 700; color: var(--rotary-blue); transition: all .15s; display: flex; align-items: center; justify-content: center; }
 .qty-ctrl button:first-child { border-radius: 8px 0 0 8px; }
 .qty-ctrl button:last-child  { border-radius: 0 8px 8px 0; }
 .qty-ctrl button:hover { background: var(--rotary-blue-lt); }
-.qty-ctrl input { width: 44px; height: 30px; border: 1.5px solid var(--border); border-left: none; border-right: none; text-align: center; font-size: 15px; font-weight: 700; font-family: inherit; color: var(--text); background: var(--surface); }
+.qty-ctrl input { width: 64px; height: 36px; border: 1.5px solid var(--border); border-left: none; border-right: none; text-align: center; font-size: 16px; font-weight: 700; font-family: inherit; color: var(--text); background: var(--surface); }
 .qty-sub { font-size: 13px; font-weight: 700; color: var(--rotary-blue); min-width: 48px; text-align: right; }
 
 /* ─── Total bar ────────────────────────────────────────── */
@@ -438,7 +438,7 @@ const LABELS = ["Saumon entier 1kg"];
 
 <!-- ─── ONGLET COMMANDES ──────────────────────────────── -->
 <div id="tab-commandes" class="panel">
-  <div class="stats-grid">
+  <div class="stats-row">
     <div class="stat-card"><div class="stat-val" id="stat-count">0</div><div class="stat-lbl">Commandes</div></div>
     <div class="stat-card"><div class="stat-val" id="stat-kg">0</div><div class="stat-lbl">kg total</div></div>
     <div class="stat-card"><div class="stat-val" id="stat-ca">0</div><div class="stat-lbl">€ CA</div></div>
