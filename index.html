@@ -766,14 +766,9 @@ async function flushQueue() {
     const failedScans = [];
     for (const scan of scanQueue) {
       try {
-        const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'upload_scan', ref: scan.ref, fileName: scan.fileName, fileData: scan.fileData, mimeType: scan.mimeType }) });
-        const data = await res.json();
-        if (data.success) {
-          const o = orders.find(x => x.ref === scan.ref);
-          if (o) { o.scan = data.url; saveLocal(); }
-        } else {
-          failedScans.push(scan);
-        }
+        const fileUrl = await _uploadScanData(scan.ref, scan.fileName, scan.fileData, scan.mimeType);
+        const o = orders.find(x => x.ref === scan.ref);
+        if (o) { o.scan = fileUrl; saveLocal(); }
       } catch (_) { failedScans.push(scan); }
     }
     scanQueue = failedScans;
@@ -945,6 +940,39 @@ async function shareBon() {
 }
 
 // ─── Scan ────────────────────────────────────────────────────
+
+// Redimensionne et compresse une image via canvas → base64 JPEG ≤ 400 Ko
+function _compressImage(dataUrl, maxSizePx, quality) {
+  return new Promise(function(resolve) {
+    const img = new Image();
+    img.onload = function() {
+      let w = img.width, h = img.height;
+      if (w > maxSizePx || h > maxSizePx) {
+        if (w > h) { h = Math.round(h * maxSizePx / w); w = maxSizePx; }
+        else       { w = Math.round(w * maxSizePx / h); h = maxSizePx; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
+async function _uploadScanData(ref, fileName, base64, mimeType) {
+  const url = getScriptUrl();
+  if (!url) throw new Error('no_url');
+  const res  = await fetch(url, {
+    method  : 'POST',
+    headers : { 'Content-Type': 'text/plain' },
+    body    : JSON.stringify({ action: 'upload_scan', ref, fileName, fileData: base64, mimeType })
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || 'erreur serveur');
+  return data.url;
+}
+
 function handleScan(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -957,59 +985,64 @@ function handleScan(e) {
 
   const infoEl = document.getElementById('scan-info');
   infoEl.style.display = 'block';
-  infoEl.textContent   = '⏳ Lecture du fichier…';
+  infoEl.textContent   = '⏳ Compression de l\'image…';
 
-  // Lire une seule fois en base64, puis preview + upload depuis le même résultat
   const reader = new FileReader();
   reader.onload = async function(ev) {
-    const dataUrl = ev.target.result;
-    const base64  = dataUrl.split(',')[1];
+    let dataUrl  = ev.target.result;
+    let base64, mimeType, fileName;
 
-    // Aperçu image
+    // Compression si image (pas PDF)
     if (file.type.startsWith('image/')) {
+      // Aperçu original d'abord
       const img = document.getElementById('scan-preview');
-      img.src = dataUrl;
-      img.style.display = 'block';
+      img.src = dataUrl; img.style.display = 'block';
+
+      // Compresser : max 1200px, qualité 0.7 → ~100-300 Ko
+      dataUrl  = await _compressImage(dataUrl, 1200, 0.7);
+      base64   = dataUrl.split(',')[1];
+      mimeType = 'image/jpeg';
+      fileName = file.name.replace(/\.[^.]+$/, '') + '_compressed.jpg';
+
+      const sizeKo = Math.round(base64.length * 0.75 / 1024);
+      infoEl.textContent = '⏳ Upload en cours… (' + sizeKo + ' Ko)';
+    } else {
+      // PDF : envoi direct sans compression
+      base64   = dataUrl.split(',')[1];
+      mimeType = file.type;
+      fileName = file.name;
+      infoEl.textContent = '⏳ Upload PDF en cours…';
     }
 
     const url = getScriptUrl();
     if (!url) {
-      // Stocker localement sans tenter l'upload
-      _storeScanLocally(ref, file.name, base64, file.type);
-      infoEl.textContent = '💾 Scan sauvegardé localement (synchronisez pour l\'envoyer)';
-      toast('Scan sauvegardé — envoi au prochain sync', 'ok');
+      _storeScanLocally(ref, fileName, base64, mimeType);
+      infoEl.textContent = '💾 Sauvegardé localement — envoi au prochain sync';
+      toast('Scan en file d\'attente', 'ok');
       return;
     }
 
-    infoEl.textContent = '⏳ Upload en cours…';
     try {
-      const res  = await fetch(url, {
-        method  : 'POST',
-        headers : { 'Content-Type': 'text/plain' },
-        body    : JSON.stringify({ action: 'upload_scan', ref, fileName: file.name, fileData: base64, mimeType: file.type })
-      });
-      const data = await res.json();
-      if (data.success) {
-        const o = orders.find(x => x.ref === ref);
-        if (o) { o.scan = data.url; saveLocal(); }
-        infoEl.textContent = '✓ Scan envoyé sur Google Drive → ' + ref;
-        toast('Scan envoyé sur Google Drive ✓', 'ok');
-      } else {
-        throw new Error(data.message);
-      }
+      const fileUrl = await _uploadScanData(ref, fileName, base64, mimeType);
+      const o = orders.find(x => x.ref === ref);
+      if (o) { o.scan = fileUrl; saveLocal(); }
+      infoEl.textContent = '✓ Scan envoyé sur Google Drive → ' + ref;
+      toast('Scan envoyé ✓', 'ok');
     } catch (err) {
-      // Échec réseau → mise en file d'attente
-      _storeScanLocally(ref, file.name, base64, file.type);
-      infoEl.textContent = '💾 Hors-ligne — scan sauvegardé, envoi au prochain sync';
-      toast('Hors-ligne — scan en file d\'attente', 'ok');
+      if (err.message === 'no_url') {
+        toast('URL Apps Script manquante', 'err');
+      } else {
+        _storeScanLocally(ref, fileName, base64, mimeType);
+        infoEl.textContent = '💾 Hors-ligne — scan sauvegardé, envoi au prochain sync';
+        toast('Hors-ligne — scan en file d\'attente', 'ok');
+      }
     }
   };
   reader.readAsDataURL(file);
 }
 
 function _storeScanLocally(ref, fileName, fileData, mimeType) {
-  // Remplacer si un scan existe déjà pour cette commande
-  const idx = scanQueue.findIndex(s => s.ref === ref);
+  const idx   = scanQueue.findIndex(s => s.ref === ref);
   const entry = { ref, fileName, fileData, mimeType };
   if (idx >= 0) scanQueue[idx] = entry;
   else          scanQueue.push(entry);
