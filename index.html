@@ -285,7 +285,7 @@ const CLUB_NAME = "Rotary Club de Fourmies-Hirson-Vervins";
 const CAMPAGNE = "Noël 2026";
 
 // Prix unitaires (€)
-const PRIX = [58];
+let PRIX = [JSON.parse(localStorage.getItem('rotary_prix') || '58')];
 
 // Poids (kg)
 const POIDS = [1.0];
@@ -708,6 +708,7 @@ window.addEventListener('load', () => {
 
   // Sync auto au démarrage si vendeur connu
   if (savedPrenom || savedNom) syncFromSheet();
+  fetchPrixFromSheet();
 });
 
 // ─── Build product rows ──────────────────────────────────────
@@ -1323,6 +1324,29 @@ function updateQueueCount() {
   if (scanQueue.length > 0) parts.push(scanQueue.length + ' scan(s)');
   document.getElementById('queue-count').textContent =
     total === 0 ? '0 élément à synchroniser' : parts.join(', ') + ' à synchroniser';
+}
+// ─── Récupération du prix depuis Google Sheets ───────────────
+async function fetchPrixFromSheet() {
+  const url = getScriptUrl();
+  if (!url) return;
+  try {
+    const res  = await fetch(url, {
+      method  : 'POST',
+      headers : { 'Content-Type': 'text/plain' },
+      body    : JSON.stringify({ action: 'get_price' })
+    });
+    const data = await res.json();
+    if (data.success && !isNaN(parseFloat(data.price))) {
+      const newPrix = parseFloat(data.price);
+      PRIX[0] = newPrix;
+      localStorage.setItem('rotary_prix', JSON.stringify(newPrix));
+      buildQtyRows();   // rafraîchit l'affichage des prix
+      updateTotal();
+      console.log('Prix saumon mis à jour : ' + newPrix + ' €');
+    }
+  } catch (_) {
+    // Hors-ligne → on garde le cache localStorage, rien à faire
+  }
 }
 
 function clearLocal() {
