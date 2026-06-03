@@ -130,17 +130,17 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .field textarea { resize: vertical; min-height: 64px; }
 
 /* ─── Qty row ──────────────────────────────────────────── */
-.qty-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.qty-row { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .qty-row:last-child { border-bottom: none; }
-.qty-label { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; }
+.qty-label { font-size: 14px; font-weight: 600; }
 .qty-price { font-size: 12px; color: var(--muted); }
-.qty-ctrl { display: flex; align-items: center; flex-shrink: 0; }
-.qty-ctrl button { width: 38px; height: 38px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 20px; font-weight: 700; color: var(--rotary-blue); transition: all .15s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.qty-ctrl { display: flex; align-items: center; }
+.qty-ctrl button { width: 30px; height: 30px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 16px; font-weight: 700; color: var(--rotary-blue); transition: all .15s; display: flex; align-items: center; justify-content: center; }
 .qty-ctrl button:first-child { border-radius: 8px 0 0 8px; }
 .qty-ctrl button:last-child  { border-radius: 0 8px 8px 0; }
 .qty-ctrl button:hover { background: var(--rotary-blue-lt); }
-.qty-ctrl input { width: 70px; min-width: 70px; height: 38px; border: 1.5px solid var(--border); border-left: none; border-right: none; text-align: center; font-size: 18px; font-weight: 700; font-family: inherit; color: var(--text); background: var(--surface); }
-.qty-sub { font-size: 13px; font-weight: 700; color: var(--rotary-blue); min-width: 52px; text-align: right; flex-shrink: 0; }
+.qty-ctrl input { width: 44px; height: 30px; border: 1.5px solid var(--border); border-left: none; border-right: none; text-align: center; font-size: 15px; font-weight: 700; font-family: inherit; color: var(--text); background: var(--surface); }
+.qty-sub { font-size: 13px; font-weight: 700; color: var(--rotary-blue); min-width: 48px; text-align: right; }
 
 /* ─── Total bar ────────────────────────────────────────── */
 .total-bar {
@@ -660,7 +660,7 @@ const LABELS = ["Saumon entier 1kg"];
     </div>
   </div>
 
-  <div class="card">
+ <div class="card">
     <div class="card-title">Responsables des commandes</div>
     <ul style="font-size:13px;color:#6B7280;line-height:1.9;padding-left:18px">
       <li><strong style="color:#1A1A1A">Liné Bernard : </strong> 06.88.47.69.37</li>
@@ -669,7 +669,6 @@ const LABELS = ["Saumon entier 1kg"];
     </ul>
   </div>
 </div>
-
 
 </div><!-- fin .app -->
 
@@ -718,13 +717,23 @@ function buildQtyRows() {
   const container = document.getElementById('qty-rows');
   container.innerHTML = LABELS.map((lbl, i) => `
     <div class="qty-row">
-      <div class="qty-info">
+      <div style="flex:1;min-width:0">
         <div class="qty-label">🐟 ${lbl}</div>
-        <div class="qty-unit">${PRIX[i]} € / pièce</div>
+        <div class="qty-price">${PRIX[i]} € / pièce</div>
       </div>
-      <span class="qty-subtotal" id="sub${i}">—</span>
-      <input type="number" id="qty${i}" value="0" min="0" max="999" oninput="updateTotal()" />
+      <div class="qty-ctrl">
+        <button type="button" onclick="changeQty(${i},-1)">−</button>
+        <input type="number" id="qty${i}" value="0" min="0" max="999" oninput="updateTotal()" style="width:70px;min-width:70px;height:38px;font-size:18px;font-weight:700;text-align:center;border:1.5px solid var(--border);border-left:none;border-right:none;font-family:inherit;background:var(--surface);color:var(--text)" />
+        <button type="button" onclick="changeQty(${i},+1)">+</button>
+      </div>
+      <span class="qty-sub" id="sub${i}">—</span>
     </div>`).join('');
+}
+
+function changeQty(i, delta) {
+  const el = document.getElementById('qty' + i);
+  el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
+  updateTotal();
 }
 
 // ─── Total calc ──────────────────────────────────────────────
@@ -956,7 +965,13 @@ function renderOrders() {
 // ─── Stats ───────────────────────────────────────────────────
 function updateStats() {
   document.getElementById('stat-count').textContent = orders.length;
-  const totalKg = orders.reduce((s, o) => s + (parseFloat(o.kg) || 0), 0);
+  const totalKg = orders.reduce((s, o) => {
+    const kg = parseFloat(o.kg);
+    if (kg > 0) return s + kg;
+    // fallback : calculer depuis les quantités
+    const fromQtys = (o.qtys || []).reduce((ks, q, i) => ks + (parseInt(q)||0) * (POIDS[i]||1), 0);
+    return s + fromQtys;
+  }, 0);
   const totalCA = orders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
   document.getElementById('stat-kg').textContent = totalKg.toFixed(1);
   document.getElementById('stat-ca').textContent = totalCA.toFixed(2);
@@ -993,6 +1008,9 @@ function renderBon() {
   document.getElementById('bon-adresse').textContent  = o.adresse || '—';
   document.getElementById('bon-contact').textContent  = [o.tel, o.email].filter(Boolean).join(' · ') || '—';
   document.getElementById('bon-paiement').textContent = { especes: '💵 Espèces', cheque: '📝 Chèque', virement: '🏦 Virement' }[o.paiement] || '—';
+  // ← Mettre à jour le select statut avec le statut actuel de la commande
+  const statutSel = document.getElementById('bon-update-statut');
+  if (statutSel && o.statut) statutSel.value = o.statut;
   document.getElementById('bon-kg').textContent       = 'Poids total : ' + o.kg + ' kg';
   document.getElementById('bon-montant').textContent  = 'Total : ' + o.total + ' €';
   const notesWrap = document.getElementById('bon-notes-wrap');
