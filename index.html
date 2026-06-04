@@ -282,7 +282,8 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyralrvyUcH1TrK
 const CLUB_NAME = "Rotary Club de Fourmies-Hirson-Vervins";
 
 // Campagne
-const CAMPAGNE = "Noël 2026";
+const CAMPAGNE_DEFAULT = "Noël 2026";
+let CAMPAGNE = localStorage.getItem('rotary_campagne') || CAMPAGNE_DEFAULT;
 
 // Prix unitaires (€)
 let PRIX = [JSON.parse(localStorage.getItem('rotary_prix') || '58')];
@@ -1350,6 +1351,11 @@ async function fetchPrixFromSheet() {
       buildQtyRows();
       updateTotal();
     }
+    if (data.campagne) {
+  CAMPAGNE = data.campagne;
+  localStorage.setItem('rotary_campagne', data.campagne);
+  document.getElementById('hdr-sub').textContent = data.campagne + ' · Collecte commandes';
+}
   } catch (_) {}
   
   // ← AJOUT : synchroniser le compteur depuis le Sheet
