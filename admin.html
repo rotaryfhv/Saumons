@@ -491,6 +491,12 @@ const PRIX_UNITAIRE   = 58; // € fallback
       <div class="kpi-val" id="kpi-ca">—</div>
       <div class="kpi-lbl">Chiffre d'affaires</div>
     </div>
+    <div class="kpi-card" id="kpi-benefice-card" style="display:none; border-top-color: var(--green);">
+  <span class="kpi-icon">📈</span>
+  <div class="kpi-val" id="kpi-benefice" style="color: var(--green);">—</div>
+  <div class="kpi-lbl">Bénéfice estimé</div>
+  <div style="font-size:11px; color: var(--green); margin-top:4px; font-weight:600" id="kpi-marge">—</div>
+</div>
     <div class="kpi-card">
       <span class="kpi-icon">📦</span>
       <div class="kpi-val" id="kpi-commandes">—</div>
@@ -678,17 +684,28 @@ async function loadData() {
   showLoader(true);
   hideError();
 
-  try {
-    const res  = await fetch(APPS_SCRIPT_URL, {
-      method  : 'POST',
-      headers : { 'Content-Type': 'text/plain' },
-      body    : JSON.stringify({ action: 'get_admin_stats' })
-    });
-    const data = await res.json();
+try {
+    // Récupération en parallèle
+    const [resStats, resPrix] = await Promise.all([
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'get_admin_stats' })
+      }),
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'get_price' })
+      })
+    ]);
 
-    if (!data.success) throw new Error(data.message || 'Erreur serveur');
+    const dataStats = await resStats.json();
+    const dataPrix  = await resPrix.json();
 
-    renderDashboard(data.stats);
+    if (!dataStats.success) throw new Error(dataStats.message || 'Erreur serveur');
+
+    // Prix d'achat récupéré depuis le Sheet
+    const prixAchat = dataPrix.prixAchat ? parseFloat(dataPrix.prixAchat) : 0;
+
+    renderDashboard(dataStats.stats, prixAchat);
     document.getElementById('last-update').textContent =
       'Mis à jour à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
@@ -712,7 +729,12 @@ function renderDashboard(s) {
   setText('kpi-moy-cmd', s.nbVendeurs > 0
     ? (total / s.nbVendeurs).toFixed(1) + ' cmd'
     : '—');
-
+// Bénéfice
+  if (benefice !== null) {
+    setText('kpi-benefice', benefice.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' €');
+    setText('kpi-marge',    marge.toFixed(1) + '% de marge');
+    document.getElementById('kpi-benefice-card').style.display = 'block';
+  }
   // Statuts
   const { payees, enAttente, livrees } = s.statuts;
   setText('s-attente', enAttente);
