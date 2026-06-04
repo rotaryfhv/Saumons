@@ -1342,13 +1342,31 @@ async function fetchPrixFromSheet() {
       const newPrix = parseFloat(data.price);
       PRIX[0] = newPrix;
       localStorage.setItem('rotary_prix', JSON.stringify(newPrix));
-      buildQtyRows();   // rafraîchit l'affichage des prix
+      buildQtyRows();
       updateTotal();
-      console.log('Prix saumon mis à jour : ' + newPrix + ' €');
     }
-  } catch (_) {
-    // Hors-ligne → on garde le cache localStorage, rien à faire
-  }
+  } catch (_) {}
+  
+  // ← AJOUT : synchroniser le compteur depuis le Sheet
+  await syncCounter();
+}
+
+async function syncCounter() {
+  const url = getScriptUrl();
+  if (!url) return;
+  try {
+    const res  = await fetch(url, {
+      method  : 'POST',
+      headers : { 'Content-Type': 'text/plain' },
+      body    : JSON.stringify({ action: 'get_last_counter' })
+    });
+    const data = await res.json();
+    if (data.success && data.counter >= orderCounter) {
+      orderCounter = data.counter;
+      localStorage.setItem('rotary_counter', orderCounter);
+      console.log('Compteur synchronisé : ' + orderCounter);
+    }
+  } catch (_) {}
 }
 
 function clearLocal() {
