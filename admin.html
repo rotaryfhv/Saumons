@@ -717,8 +717,12 @@ try {
 }
 
 // ─── Render ──────────────────────────────────────────────────
-function renderDashboard(s) {
+function renderDashboard(s, prixAchat) {  // ← ajout prixAchat
   const total = s.totalCommandes;
+
+  // Calcul bénéfice
+  const benefice     = prixAchat > 0 ? s.totalCA - (prixAchat * s.totalKg) : null;
+  const marge        = s.totalCA > 0 && benefice !== null ? (benefice / s.totalCA * 100) : null;
 
   // KPIs
   animateNumber('kpi-ca',        s.totalCA,        '€', true);
