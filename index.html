@@ -492,9 +492,9 @@ const LABELS = ["Saumon entier 1kg"];
       </select>
     </div>
     <div style="display:flex; gap:8px; margin-top:8px;">
-      <button class="btn-outline" onclick="window.print()" style="flex:1">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-        Imprimer
+      <button class="btn-outline" onclick="sendBonToClient()" style="flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        ✉️ Acheteur
       </button>
       <button class="btn-outline" onclick="shareBon()" style="flex:1">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -647,12 +647,6 @@ const LABELS = ["Saumon entier 1kg"];
       </div>
     </div>
 
-    <!-- Bouton upload signatures vers Drive -->
-    <button class="btn-outline" onclick="uploadSignatures()" id="btn-upload-sigs"
-      style="width:100%;margin-top:10px;display:none">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Envoyer les signatures sur Google Drive
-    </button>
     <div id="sig-info" style="font-size:12px;color:var(--rotary-blue);margin-top:6px;display:none"></div>
   </div>
 
@@ -1324,6 +1318,105 @@ async function shareBon() {
   window.print();
 }
 
+async function sendBonToClient() {
+  const ref = document.getElementById('bon-select').value;
+  if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
+  const o = orders.find(x => x.ref === ref); if (!o) return;
+
+  if (!o.email) {
+    toast('Pas d\'email renseigné pour ce client', 'err');
+    return;
+  }
+
+  toast('⏳ Génération du PDF…', 'ok');
+
+  // ── 1. Capturer le bon en image via html2canvas ───────────
+  const bonEl = document.getElementById('bon-content');
+  let pdfBlob = null;
+  let pdfFileName = (_bonFileName(o) || ref) + '.pdf';
+
+  try {
+    const canvas = await html2canvas(bonEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+    // ── 2. Générer le PDF avec jsPDF ──────────────────────
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    // Si le bon dépasse une page, le réduire pour tenir
+    const finalH = imgH > pageH - margin * 2 ? pageH - margin * 2 : imgH;
+    pdf.addImage(imgData, 'JPEG', margin, margin, imgW, finalH);
+    pdfBlob = pdf.output('blob');
+  } catch (err) {
+    toast('Erreur génération PDF : ' + err.message, 'err');
+    return;
+  }
+
+  // ── 3. Corps du mail ──────────────────────────────────────
+  const paiementLabel = {especes:'Espèces', cheque:'Chèque', virement:'Virement'}[o.paiement] || o.paiement || '—';
+  const lignes = (o.qtys || []).map((q, i) => q > 0 ? `  - ${LABELS[i]} × ${q} = ${q * PRIX[i]} €` : '').filter(Boolean).join('\n');
+  const sujet = '[Rotary ' + CLUB_NAME + '] Votre bon de commande — Saumon fumé ' + CAMPAGNE;
+  const corps =
+    'Bonjour ' + (o.client || '') + ',\n\n' +
+    'Veuillez trouver en pièce jointe votre bon de commande de saumon fumé\n' +
+    'dans le cadre de l\'Opération Saumons ' + CAMPAGNE +
+    ' du Rotary Club de Fourmies-Hirson-Vervins.\n\n' +
+    '──────────────────────────────\n' +
+    'Référence   : ' + o.ref + '\n' +
+    'Date        : ' + (o.date || new Date().toLocaleDateString('fr-FR')) + '\n' +
+    'Rotarien    : ' + (o.rotarien || '—') + '\n' +
+    '──────────────────────────────\n' +
+    'Commande :\n' + lignes + '\n' +
+    'Poids total : ' + (o.kg || 0) + ' kg\n' +
+    'TOTAL       : ' + o.total + ' €\n' +
+    'Paiement    : ' + paiementLabel + '\n' +
+    (o.notes ? 'Notes       : ' + o.notes + '\n' : '') +
+    '──────────────────────────────\n\n' +
+    'Merci pour votre soutien au Rotary Club de Fourmies-Hirson-Vervins !\n\n' +
+    'Cordialement,\n' +
+    (o.rotarien || 'Le Rotary Club');
+
+  // ── 4. Web Share API (iOS / Android) — avec fichier joint ─
+  const pdfFile = new File([pdfBlob], pdfFileName, { type: 'application/pdf' });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+    try {
+      await navigator.share({
+        title  : sujet,
+        text   : corps,
+        files  : [pdfFile]
+      });
+      toast('Bon partagé avec succès ✓', 'ok');
+      return;
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        // Share échoué → fallback
+      } else {
+        return; // L'utilisateur a annulé
+      }
+    }
+  }
+
+  // ── 5. Fallback : télécharger le PDF + ouvrir mailto ─────
+  // Téléchargement automatique du PDF
+  const url = URL.createObjectURL(pdfBlob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: pdfFileName });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  // Puis ouvrir le client mail (sans pièce jointe — limitation mailto)
+  setTimeout(() => {
+    const mailtoUrl = 'mailto:' + o.email
+      + '?subject=' + encodeURIComponent(sujet)
+      + '&body='    + encodeURIComponent(corps + '\n\n[Le PDF du bon a été téléchargé sur votre appareil — merci de le joindre manuellement]');
+    window.location.href = mailtoUrl;
+    toast('PDF téléchargé — joignez-le dans votre mail', 'ok');
+  }, 600);
+}
+
 async function sendBonToSheet() {
   const ref = document.getElementById('bon-select').value;
   if (!ref) { toast('Sélectionnez une commande','err'); return; }
@@ -1472,5 +1565,6 @@ async function changeOrderStatus() {
 }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
