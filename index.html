@@ -1357,7 +1357,9 @@ async function sendBonToClient() {
   } catch (err) { toast('Erreur PDF : ' + err.message, 'err'); return; }
 
   // ── 2. Envoi automatique au tableur ───────────────────────
-  _autoSendToSheet(ref, o, base64Img ? base64Img.split(',')[1] : null);
+  if (base64Img) {
+  await _autoSendToSheet(ref, o, base64Img.split(',')[1]);
+}
 
   // ── 3. Préparer le corps du mail ──────────────────────────
   const paiementLabel = {especes:'Espèces',cheque:'Chèque',virement:'Virement'}[o.paiement] || o.paiement || '—';
@@ -1382,19 +1384,19 @@ async function sendBonToClient() {
     'Cordialement,\n' + (o.rotarien||'Le Rotary Club');
 
   // ── 4. Télécharger le PDF sur l'appareil ──────────────────
-  const blobUrl = URL.createObjectURL(pdfBlob);
-  const a = Object.assign(document.createElement('a'), { href: blobUrl, download: pdfFileName });
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(blobUrl);
+const blobUrl = URL.createObjectURL(pdfBlob);
+const a = Object.assign(document.createElement('a'), { href: blobUrl, download: pdfFileName });
+document.body.appendChild(a); a.click(); document.body.removeChild(a);
+URL.revokeObjectURL(blobUrl);
 
   // ── 5. Ouvrir le mail avec destinataire pré-rempli ────────
   // Petit délai pour laisser le téléchargement démarrer
-  setTimeout(() => {
-    const mailtoUrl = 'mailto:' + email
-      + '?subject=' + encodeURIComponent(sujet)
-      + '&body='    + encodeURIComponent(corps + '\n\n');
-    window.location.href = mailtoUrl;
-  }, 400);
+setTimeout(() => {
+  const mailtoUrl = 'mailto:' + email
+    + '?subject=' + encodeURIComponent(sujet)
+    + '&body='    + encodeURIComponent(corps + '\n\n');
+  window.location.href = mailtoUrl;
+}, 800);
 
   toast('PDF téléchargé — mail prêt à envoyer ✓', 'ok');
 }
