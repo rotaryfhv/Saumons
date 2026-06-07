@@ -1161,7 +1161,10 @@ async function syncFromSheet() {
     .then(r => r.json())
     .then(res => {
       if (res.success) {
-        orders = res.orders; saveLocal(); renderOrders();
+        const sheetRefs = new Set(res.orders.map(o => o.ref));
+const localOnly = orders.filter(o => !sheetRefs.has(o.ref));
+orders = [...res.orders, ...localOnly];
+saveLocal(); renderOrders();
         dot.className = 'sync-dot ok'; lbl.textContent = 'À jour';
         toast('Synchronisé ✓', 'ok');
       } else throw new Error(res.message);
@@ -1437,7 +1440,7 @@ async function syncCounter() {
   try {
     const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'get_last_counter'})});
     const data=await res.json();
-    if(data.success&&data.counter>=orderCounter){orderCounter=data.counter;localStorage.setItem('rotary_counter',orderCounter);}
+    if(data.success&&data.counter>orderCounter){orderCounter=data.counter;localStorage.setItem('rotary_counter',orderCounter);}
   } catch(_) {}
 }
 
