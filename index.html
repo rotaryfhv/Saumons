@@ -494,7 +494,7 @@ const LABELS = ["Saumon entier 1kg"];
     <div style="display:flex; gap:8px; margin-top:8px;">
       <button class="btn-outline" onclick="sendBonToClient()" style="flex:1">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        ✉️ Acheteur
+        Acheteur
       </button>
       <button class="btn-outline" onclick="shareBon()" style="flex:1">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -1279,8 +1279,6 @@ function renderBon() {
     }
   });
   updateSigBadge();
-  const hasBoth = currentSigs.client && currentSigs.rotarien;
-  document.getElementById('btn-upload-sigs').style.display = hasBoth ? 'flex' : 'none';
 }
 
 // ─── Capture du bon (html2canvas) ─────────────────────────────
@@ -1309,16 +1307,22 @@ async function shareBon() {
   if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
   const o = orders.find(x => x.ref === ref); if (!o) return;
   const text = ['Club Rotary — Saumon fumé '+CAMPAGNE,'Réf : '+o.ref,'Client : '+o.client,'Total : '+o.total+' €','Paiement : '+(o.paiement||'—')].join('\n');
-  if (navigator.share) {
-    toast('Génération du bon…','ok');
-    const base64 = await _captureBonBase64();
-    if (base64 && navigator.canShare) {
-      try {
-        const file = new File([Uint8Array.from(atob(base64),c=>c.charCodeAt(0))], _bonFileName(o)+'.jpg', {type:'image/jpeg'});
-        if (navigator.canShare({files:[file]})) { await navigator.share({title:'Bon '+ref,text,files:[file]}); return; }
-      } catch(_) {}
-    }
-    try { await navigator.share({title:'Bon '+ref,text}); return; } catch(_) {}
+
+  toast('⏳ Génération du bon…', 'ok');
+  const base64 = await _captureBonBase64();
+
+  // Envoi automatique au tableur
+  _autoSendToSheet(ref, o, base64);
+
+  if (navigator.share && base64) {
+    try {
+      const file = new File([Uint8Array.from(atob(base64),c=>c.charCodeAt(0))], _bonFileName(o)+'.jpg', {type:'image/jpeg'});
+      if (navigator.canShare && navigator.canShare({files:[file]})) {
+        await navigator.share({title:'Bon '+ref, text, files:[file]});
+        return;
+      }
+    } catch(e) { if (e.name === 'AbortError') return; }
+    try { await navigator.share({title:'Bon '+ref, text}); return; } catch(_) {}
   }
   window.print();
 }
@@ -1328,98 +1332,104 @@ async function sendBonToClient() {
   if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
   const o = orders.find(x => x.ref === ref); if (!o) return;
 
-  if (!o.email) {
+  // Récupérer l'email : depuis l'objet commande ou depuis le champ de saisie
+  const email = o.email || '';
+  if (!email) {
     toast('Pas d\'email renseigné pour ce client', 'err');
     return;
   }
 
   toast('⏳ Génération du PDF…', 'ok');
 
-  // ── 1. Capturer le bon en image via html2canvas ───────────
-  const bonEl = document.getElementById('bon-content');
+  // ── 1. Capturer le bon ────────────────────────────────────
   let pdfBlob = null;
-  let pdfFileName = (_bonFileName(o) || ref) + '.pdf';
+  const pdfFileName = (_bonFileName(o) || ref) + '.pdf';
+  let base64Img = null;
 
   try {
+    const bonEl = document.getElementById('bon-content');
     const canvas = await html2canvas(bonEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    base64Img = canvas.toDataURL('image/jpeg', 0.92);
 
-    // ── 2. Générer le PDF avec jsPDF ──────────────────────
+    // ── 2. Générer le PDF ─────────────────────────────────
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
+    const pdf    = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW  = pdf.internal.pageSize.getWidth();
+    const pageH  = pdf.internal.pageSize.getHeight();
     const margin = 10;
-    const imgW = pageW - margin * 2;
-    const imgH = (canvas.height * imgW) / canvas.width;
-    // Si le bon dépasse une page, le réduire pour tenir
-    const finalH = imgH > pageH - margin * 2 ? pageH - margin * 2 : imgH;
-    pdf.addImage(imgData, 'JPEG', margin, margin, imgW, finalH);
+    const imgW   = pageW - margin * 2;
+    const imgH   = (canvas.height * imgW) / canvas.width;
+    pdf.addImage(base64Img, 'JPEG', margin, margin, imgW, Math.min(imgH, pageH - margin * 2));
     pdfBlob = pdf.output('blob');
   } catch (err) {
     toast('Erreur génération PDF : ' + err.message, 'err');
     return;
   }
 
-  // ── 3. Corps du mail ──────────────────────────────────────
+  // ── 3. Envoi automatique au tableur ───────────────────────
+  _autoSendToSheet(ref, o, base64Img ? base64Img.split(',')[1] : null);
+
+  // ── 4. Corps du mail ──────────────────────────────────────
   const paiementLabel = {especes:'Espèces', cheque:'Chèque', virement:'Virement'}[o.paiement] || o.paiement || '—';
-  const lignes = (o.qtys || []).map((q, i) => q > 0 ? `  - ${LABELS[i]} × ${q} = ${q * PRIX[i]} €` : '').filter(Boolean).join('\n');
-  const sujet = '[Rotary ' + CLUB_NAME + '] Votre bon de commande — Saumon fumé ' + CAMPAGNE;
-  const corps =
-    'Bonjour ' + (o.client || '') + ',\n\n' +
+  const lignes = (o.qtys||[]).map((q,i)=>q>0?`  - ${LABELS[i]} × ${q} = ${q*PRIX[i]} €`:'').filter(Boolean).join('\n');
+  const sujet  = '[Rotary ' + CLUB_NAME + '] Votre bon de commande — Saumon fumé ' + CAMPAGNE;
+  const corps  =
+    'Bonjour ' + (o.client||'') + ',\n\n' +
     'Veuillez trouver en pièce jointe votre bon de commande de saumon fumé\n' +
-    'dans le cadre de l\'Opération Saumons ' + CAMPAGNE +
-    ' du Rotary Club de Fourmies-Hirson-Vervins.\n\n' +
+    'dans le cadre de l\'Opération Saumons ' + CAMPAGNE + ' du Rotary Club de Fourmies-Hirson-Vervins.\n\n' +
     '──────────────────────────────\n' +
     'Référence   : ' + o.ref + '\n' +
-    'Date        : ' + (o.date || new Date().toLocaleDateString('fr-FR')) + '\n' +
-    'Rotarien    : ' + (o.rotarien || '—') + '\n' +
+    'Date        : ' + (o.date||new Date().toLocaleDateString('fr-FR')) + '\n' +
+    'Rotarien    : ' + (o.rotarien||'—') + '\n' +
     '──────────────────────────────\n' +
     'Commande :\n' + lignes + '\n' +
-    'Poids total : ' + (o.kg || 0) + ' kg\n' +
+    'Poids total : ' + (o.kg||0) + ' kg\n' +
     'TOTAL       : ' + o.total + ' €\n' +
     'Paiement    : ' + paiementLabel + '\n' +
     (o.notes ? 'Notes       : ' + o.notes + '\n' : '') +
     '──────────────────────────────\n\n' +
     'Merci pour votre soutien au Rotary Club de Fourmies-Hirson-Vervins !\n\n' +
-    'Cordialement,\n' +
-    (o.rotarien || 'Le Rotary Club');
+    'Cordialement,\n' + (o.rotarien||'Le Rotary Club');
 
-  // ── 4. Web Share API (iOS / Android) — avec fichier joint ─
+  // ── 5. Web Share API avec PDF joint (iOS/Android) ─────────
   const pdfFile = new File([pdfBlob], pdfFileName, { type: 'application/pdf' });
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
     try {
-      await navigator.share({
-        title  : sujet,
-        text   : corps,
-        files  : [pdfFile]
-      });
-      toast('Bon partagé avec succès ✓', 'ok');
+      await navigator.share({ title: sujet, text: corps, files: [pdfFile] });
+      toast('Bon envoyé ✓', 'ok');
       return;
     } catch (err) {
-      if (err.name !== 'AbortError') {
-        // Share échoué → fallback
-      } else {
-        return; // L'utilisateur a annulé
-      }
+      if (err.name === 'AbortError') return;
     }
   }
 
-  // ── 5. Fallback : télécharger le PDF + ouvrir mailto ─────
-  // Téléchargement automatique du PDF
-  const url = URL.createObjectURL(pdfBlob);
-  const a = Object.assign(document.createElement('a'), { href: url, download: pdfFileName });
+  // ── 6. Fallback : téléchargement PDF + mailto ─────────────
+  const blobUrl = URL.createObjectURL(pdfBlob);
+  const a = Object.assign(document.createElement('a'), { href: blobUrl, download: pdfFileName });
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  URL.revokeObjectURL(blobUrl);
 
-  // Puis ouvrir le client mail (sans pièce jointe — limitation mailto)
   setTimeout(() => {
-    const mailtoUrl = 'mailto:' + o.email
+    window.location.href = 'mailto:' + email
       + '?subject=' + encodeURIComponent(sujet)
-      + '&body='    + encodeURIComponent(corps + '\n\n[Le PDF du bon a été téléchargé sur votre appareil — merci de le joindre manuellement]');
-    window.location.href = mailtoUrl;
-    toast('PDF téléchargé — joignez-le dans votre mail', 'ok');
+      + '&body='    + encodeURIComponent(corps + '\n\n[PDF joint téléchargé sur votre appareil]');
+    toast('PDF téléchargé — joignez-le au mail', 'ok');
   }, 600);
+}
+
+// ── Envoi silencieux au tableur (appelé automatiquement) ──────
+async function _autoSendToSheet(ref, o, base64) {
+  const url = getScriptUrl();
+  if (!url || !base64) return;
+  const infoEl = document.getElementById('sig-info');
+  try {
+    const b64 = base64.includes(',') ? base64.split(',')[1] : base64;
+    const fileUrl = await _uploadScanData(ref, _bonFileName(o) + '.jpg', b64, 'image/jpeg');
+    o.scan = fileUrl; saveLocal();
+    if (infoEl) { infoEl.style.display='block'; infoEl.style.color='var(--rotary-blue)'; infoEl.textContent='✓ Bon enregistré dans le tableur'; }
+  } catch(_) {
+    if (infoEl) { infoEl.style.display='block'; infoEl.style.color='#A32D2D'; infoEl.textContent='⚠️ Tableur non mis à jour (hors-ligne ?)'; }
+  }
 }
 
 async function sendBonToSheet() {
