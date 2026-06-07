@@ -1284,11 +1284,18 @@ function renderBon() {
 // ─── Capture du bon (html2canvas) ─────────────────────────────
 async function _captureBonBase64() {
   const bonEl = document.getElementById('bon-content');
-  if (window.html2canvas) {
-    const canvas = await html2canvas(bonEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+  // Attendre html2canvas si pas encore disponible (jusqu'à 10s)
+  if (!window.html2canvas) {
+    await new Promise((resolve, reject) => {
+      const t0 = Date.now();
+      const check = setInterval(() => {
+        if (window.html2canvas) { clearInterval(check); resolve(); }
+        else if (Date.now() - t0 > 10000) { clearInterval(check); reject(new Error('html2canvas non chargé')); }
+      }, 100);
+    });
   }
-  return null;
+  const canvas = await html2canvas(bonEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+  return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
 }
 
 function _bonFileName(o) {
