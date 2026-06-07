@@ -1102,24 +1102,22 @@ async function saveOrder() {
   orders.push(order);
   saveLocal();
 
-  // Sync vers le Sheet
+  // Basculer immédiatement sur le bon AVANT le sync (l'utilisateur ne voit pas le formulaire se vider)
+  updateBonSelect();
+  openBon(order.ref);
+  resetForm();
+  toast('✓ ' + order.ref + ' enregistrée — signez le bon !', 'ok');
+
+  // Sync en arrière-plan
   const url = getScriptUrl();
   if (url && document.getElementById('cfg-sync').checked) {
-    await syncOrder(order, url);
+    syncOrder(order, url);
   } else {
     queue.push(order);
     saveQueue();
     updateQueueCount();
     updateSyncBadge('local');
   }
-
-  // Ouvrir le bon EN PREMIER (formulaire encore visible, pas d'effet de flash)
-  updateBonSelect();
-  openBon(order.ref);
-  toast('✓ ' + order.ref + ' enregistrée — signez le bon !', 'ok');
-
-  // Réinitialiser le formulaire APRÈS la bascule (l'utilisateur ne le voit plus)
-  resetForm();
 }
 
 async function syncOrder(order, url) {
