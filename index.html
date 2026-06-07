@@ -1154,19 +1154,27 @@ async function flushQueue() {
 async function syncFromSheet() {
   const dot = document.getElementById('sync-dot'), lbl = document.getElementById('sync-label');
   dot.className = 'sync-dot spin'; lbl.textContent = 'Sync...';
+
+  // Nom du rotarien tel que saisi — on le normalise pour la comparaison
   const rotarienName = (document.getElementById('rot-prenom').value.trim() + ' ' + document.getElementById('rot-nom').value.trim()).trim();
+  const normalize = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+  const refName   = normalize(rotarienName);
+
   const url = getScriptUrl();
   if (!url) { dot.className = 'sync-dot err'; lbl.textContent = 'Erreur'; toast('URL Apps Script manquante', 'err'); return; }
+
   fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_orders', rotarien: rotarienName }) })
     .then(r => r.json())
     .then(res => {
       if (res.success) {
-        const sheetRefs = new Set(res.orders.map(o => o.ref));
-const localOnly = orders.filter(o => !sheetRefs.has(o.ref));
-orders = [...res.orders, ...localOnly];
-saveLocal(); renderOrders();
+        // Filtre strict côté client : correspondance exacte (insensible à la casse et aux accents)
+        const filtered = refName
+          ? res.orders.filter(o => normalize(o.rotarien) === refName)
+          : res.orders;
+        orders = filtered;
+        saveLocal(); renderOrders();
         dot.className = 'sync-dot ok'; lbl.textContent = 'À jour';
-        toast('Synchronisé ✓', 'ok');
+        toast('Synchronisé ✓ — ' + filtered.length + ' commande(s)', 'ok');
       } else throw new Error(res.message);
     })
     .catch(() => { dot.className = 'sync-dot err'; lbl.textContent = 'Erreur'; toast('Erreur de synchronisation', 'err'); });
@@ -1440,7 +1448,7 @@ async function syncCounter() {
   try {
     const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'get_last_counter'})});
     const data=await res.json();
-    if(data.success&&data.counter>orderCounter){orderCounter=data.counter;localStorage.setItem('rotary_counter',orderCounter);}
+    if(data.success&&data.counter>=orderCounter){orderCounter=data.counter;localStorage.setItem('rotary_counter',orderCounter);}
   } catch(_) {}
 }
 
