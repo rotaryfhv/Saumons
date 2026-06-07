@@ -1319,7 +1319,7 @@ async function shareBon() {
   const base64 = await _captureBonBase64();
 
   // Envoi automatique au tableur
-  _autoSendToSheet(ref, o, base64);
+  await_autoSendToSheet(ref, o, base64);
 
   if (navigator.share && base64) {
     try {
@@ -1403,7 +1403,7 @@ setTimeout(() => {
     + '?subject=' + encodeURIComponent(sujet)
     + '&body='    + encodeURIComponent(corps + '\n\n');
   window.location.href = mailtoUrl;
-}, 800);
+}, 400);
 
   toast('PDF téléchargé — mail prêt à envoyer ✓', 'ok');
 }
