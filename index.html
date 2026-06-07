@@ -1332,16 +1332,12 @@ async function sendBonToClient() {
   if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
   const o = orders.find(x => x.ref === ref); if (!o) return;
 
-  // Récupérer l'email : depuis l'objet commande ou depuis le champ de saisie
   const email = o.email || '';
-  if (!email) {
-    toast('Pas d\'email renseigné pour ce client', 'err');
-    return;
-  }
+  if (!email) { toast('Pas d\'email renseigné pour ce client', 'err'); return; }
 
   toast('⏳ Génération du PDF…', 'ok');
 
-  // ── 1. Capturer le bon ────────────────────────────────────
+  // ── 1. Capturer le bon et générer le PDF ──────────────────
   let pdfBlob = null;
   const pdfFileName = (_bonFileName(o) || ref) + '.pdf';
   let base64Img = null;
@@ -1350,27 +1346,21 @@ async function sendBonToClient() {
     const bonEl = document.getElementById('bon-content');
     const canvas = await html2canvas(bonEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
     base64Img = canvas.toDataURL('image/jpeg', 0.92);
-
-    // ── 2. Générer le PDF ─────────────────────────────────
     const { jsPDF } = window.jspdf;
     const pdf    = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW  = pdf.internal.pageSize.getWidth();
     const pageH  = pdf.internal.pageSize.getHeight();
-    const margin = 10;
-    const imgW   = pageW - margin * 2;
+    const margin = 10, imgW = pageW - margin * 2;
     const imgH   = (canvas.height * imgW) / canvas.width;
     pdf.addImage(base64Img, 'JPEG', margin, margin, imgW, Math.min(imgH, pageH - margin * 2));
     pdfBlob = pdf.output('blob');
-  } catch (err) {
-    toast('Erreur génération PDF : ' + err.message, 'err');
-    return;
-  }
+  } catch (err) { toast('Erreur PDF : ' + err.message, 'err'); return; }
 
-  // ── 3. Envoi automatique au tableur ───────────────────────
+  // ── 2. Envoi automatique au tableur ───────────────────────
   _autoSendToSheet(ref, o, base64Img ? base64Img.split(',')[1] : null);
 
-  // ── 4. Corps du mail ──────────────────────────────────────
-  const paiementLabel = {especes:'Espèces', cheque:'Chèque', virement:'Virement'}[o.paiement] || o.paiement || '—';
+  // ── 3. Préparer le corps du mail ──────────────────────────
+  const paiementLabel = {especes:'Espèces',cheque:'Chèque',virement:'Virement'}[o.paiement] || o.paiement || '—';
   const lignes = (o.qtys||[]).map((q,i)=>q>0?`  - ${LABELS[i]} × ${q} = ${q*PRIX[i]} €`:'').filter(Boolean).join('\n');
   const sujet  = '[Rotary ' + CLUB_NAME + '] Votre bon de commande — Saumon fumé ' + CAMPAGNE;
   const corps  =
@@ -1391,30 +1381,22 @@ async function sendBonToClient() {
     'Merci pour votre soutien au Rotary Club de Fourmies-Hirson-Vervins !\n\n' +
     'Cordialement,\n' + (o.rotarien||'Le Rotary Club');
 
-  // ── 5. Web Share API avec PDF joint (iOS/Android) ─────────
-  const pdfFile = new File([pdfBlob], pdfFileName, { type: 'application/pdf' });
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-    try {
-      await navigator.share({ title: sujet, text: corps, files: [pdfFile] });
-      toast('Bon envoyé ✓', 'ok');
-      return;
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-    }
-  }
-
-  // ── 6. Fallback : téléchargement PDF + mailto ─────────────
+  // ── 4. Télécharger le PDF sur l'appareil ──────────────────
   const blobUrl = URL.createObjectURL(pdfBlob);
   const a = Object.assign(document.createElement('a'), { href: blobUrl, download: pdfFileName });
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(blobUrl);
 
+  // ── 5. Ouvrir le mail avec destinataire pré-rempli ────────
+  // Petit délai pour laisser le téléchargement démarrer
   setTimeout(() => {
-    window.location.href = 'mailto:' + email
+    const mailtoUrl = 'mailto:' + email
       + '?subject=' + encodeURIComponent(sujet)
-      + '&body='    + encodeURIComponent(corps + '\n\n[PDF joint téléchargé sur votre appareil]');
-    toast('PDF téléchargé — joignez-le au mail', 'ok');
-  }, 600);
+      + '&body='    + encodeURIComponent(corps + '\n\n[Bon de commande PDF joint téléchargé sur votre appareil]');
+    window.location.href = mailtoUrl;
+  }, 400);
+
+  toast('PDF téléchargé — mail prêt à envoyer ✓', 'ok');
 }
 
 // ── Envoi silencieux au tableur (appelé automatiquement) ──────
