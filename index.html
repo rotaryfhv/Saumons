@@ -1101,9 +1101,8 @@ async function saveOrder() {
 
   orders.push(order);
   saveLocal();
-  resetForm();
 
-  // Sync vers le Sheet d'abord, PUIS on bascule sur le bon
+  // Sync vers le Sheet
   const url = getScriptUrl();
   if (url && document.getElementById('cfg-sync').checked) {
     await syncOrder(order, url);
@@ -1114,12 +1113,13 @@ async function saveOrder() {
     updateSyncBadge('local');
   }
 
-  // Ouvrir le bon après que le DOM soit stable
+  // Ouvrir le bon EN PREMIER (formulaire encore visible, pas d'effet de flash)
   updateBonSelect();
-  setTimeout(() => {
-    openBon(order.ref);
-    toast('✓ ' + order.ref + ' enregistrée — signez le bon !', 'ok');
-  }, 100);
+  openBon(order.ref);
+  toast('✓ ' + order.ref + ' enregistrée — signez le bon !', 'ok');
+
+  // Réinitialiser le formulaire APRÈS la bascule (l'utilisateur ne le voit plus)
+  resetForm();
 }
 
 async function syncOrder(order, url) {
