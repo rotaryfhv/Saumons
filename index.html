@@ -1392,7 +1392,7 @@ async function sendBonToClient() {
   setTimeout(() => {
     const mailtoUrl = 'mailto:' + email
       + '?subject=' + encodeURIComponent(sujet)
-      + '&body='    + encodeURIComponent(corps + '\n\n[Bon de commande PDF joint téléchargé sur votre appareil]');
+      + '&body='    + encodeURIComponent(corps + '\n\n');
     window.location.href = mailtoUrl;
   }, 400);
 
