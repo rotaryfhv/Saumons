@@ -1107,8 +1107,10 @@ async function saveOrder() {
 
   orders.push(order);
   saveLocal();
-  toast('✓ Commande ' + order.ref + ' enregistrée !', 'ok');
   resetForm();
+  updateBonSelect();
+  openBon(order.ref);
+  toast('✓ ' + order.ref + ' enregistrée — signez le bon !', 'ok');
 
   const url = getScriptUrl();
   if (url && document.getElementById('cfg-sync').checked) {
