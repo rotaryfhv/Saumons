@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="theme-color" content="#003399" />
+<title>Rotary Club Fourmies-Hirson-Vervins — Opération Saumons 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Source+Sans+3:wght@400;500;600;700&family=DM+Mono&display=swap" rel="stylesheet" />
+<style>
+/* ─── Reset & base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --rotary-blue:   #003399;
+  --rotary-blue-dk:#002277;
+  --rotary-blue-lt:#E8EEF8;
+  --rotary-gold:   #F7A800;
+  --rotary-gold-dk:#C98500;
+  --rotary-gold-lt:#FEF6E4;
+  --green:    #1B7F4F;
+  --green-lt: #E3F4EC;
+  --amber-lt: #FEF6E4;
+  --amber:    #8A5C00;
+  --blue-lt:  #E8EEF8;
+  --blue:     #003399;
+  --red-lt:   #FCEBEB;
+  --red:      #A32D2D;
+  --bg:       #F2F4F8;
+  --surface:  #FFFFFF;
+  --border:   #D5DBE8;
+  --text:     #0D1B3E;
+  --muted:    #5A6478;
+  --radius:   10px;
+  --shadow:   0 1px 4px rgba(0,51,153,0.10), 0 1px 2px rgba(0,0,0,0.04);
+  font-family: 'Source Sans 3', system-ui, sans-serif;
+}
+body { background: var(--bg); color: var(--text); min-height: 100vh; }
+.app { max-width: 540px; margin: 0 auto; padding: 0 0 80px; }
+
+/* ─── Header ───────────────────────────────────────────── */
+.app-header {
+  background: linear-gradient(135deg, var(--rotary-blue-dk) 0%, var(--rotary-blue) 60%, #1A4DB8 100%);
+  color: white; padding: 0 16px;
+  display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,34,119,0.35);
+  min-height: 64px;
+}
+.header-wheel { flex-shrink: 0; }
+.header-text { flex: 1; min-width: 0; overflow: hidden; }
+.header-club {
+  font-family: 'Merriweather', Georgia, serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.05em; color: var(--rotary-gold);
+  text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.header-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-sub { font-size: 11px; opacity: 0.80; margin-top: 1px; }
+.sync-badge {
+  margin-left: auto; flex-shrink: 0; font-size: 11px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 4px 10px; border-radius: 20px;
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; }
+.sync-dot.ok  { background: #7FFFBA; }
+.sync-dot.err { background: #FF9999; }
+.sync-dot.spin { animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ─── Tab bar ──────────────────────────────────────────── */
+.tab-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--surface);
+  border-bottom: 2px solid var(--rotary-blue);
+  position: sticky; top: 64px; z-index: 99;
+}
+.tab-btn {
+  padding: 10px 4px 8px; border: none; background: transparent;
+  color: var(--muted); font-family: inherit; font-size: 11px; font-weight: 600;
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; gap: 3px; transition: color 0.15s;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+}
+.tab-btn svg { width: 20px; height: 20px; }
+.tab-btn.active { color: var(--rotary-blue); border-bottom-color: var(--rotary-gold); }
+
+/* ─── Panels ───────────────────────────────────────────── */
+.panel { display: none; padding: 16px; }
+.panel.active { display: block; }
+
+/* ─── Cards ────────────────────────────────────────────── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  margin-bottom: 12px; box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 11px; font-weight: 700; color: var(--rotary-blue);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-title svg { color: var(--rotary-gold); width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ─── Stat cards ───────────────────────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px; text-align: center;
+  border-top: 3px solid var(--rotary-gold);
+}
+.stat-val { font-size: 22px; font-weight: 700; color: var(--rotary-blue); font-family: 'Merriweather', serif; }
+.stat-lbl { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+/* ─── Form fields ──────────────────────────────────────── */
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 9px 11px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  font-family: inherit; font-size: 15px; color: var(--text);
+  background: var(--surface); transition: border-color 0.15s; appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--rotary-blue);
+  box-shadow: 0 0 0 3px rgba(0,51,153,0.10);
+}
+.field textarea { resize: vertical; min-height: 64px; }
+
+/* ─── Qty row ──────────────────────────────────────────── */
+.qty-row { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.qty-row:last-child { border-bottom: none; }
+.qty-label { font-size: 14px; font-weight: 600; }
+.qty-price { font-size: 12px; color: var(--muted); }
+.qty-ctrl { display: flex; align-items: center; }
+.qty-ctrl button { width: 30px; height: 30px; border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; font-size: 16px; font-weight: 700; color: var(--rotary-blue); transition: all .15s; display: flex; align-items: center; justify-content: center; }
+.qty-ctrl button:first-child { border-radius: 8px 0 0 8px; }
+.qty-ctrl button:last-child  { border-radius: 0 8px 8px 0; }
+.qty-ctrl button:hover { background: var(--rotary-blue-lt); }
+.qty-ctrl input { width: 44px; height: 30px; border: 1.5px solid var(--border); border-left: none; border-right: none; text-align: center; font-size: 15px; font-weight: 700; font-family: inherit; color: var(--text); background: var(--surface); }
+.qty-sub { display: none; }
+
+/* ─── Total bar ────────────────────────────────────────── */
+.total-bar {
+  background: linear-gradient(135deg, var(--rotary-blue) 0%, var(--rotary-blue-dk) 100%);
+  color: white; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.total-bar .lbl { font-size: 13px; opacity: 0.85; font-weight: 600; }
+.total-bar .val { font-family: 'Merriweather', serif; font-size: 24px; font-weight: 700; color: var(--rotary-gold); }
+.total-bar .kg  { font-size: 12px; opacity: 0.75; }
+
+/* ─── Buttons ──────────────────────────────────────────── */
+.btn-green {
+  width: 100%; padding: 13px; border: none;
+  background: linear-gradient(135deg, var(--rotary-blue) 0%, var(--rotary-blue-dk) 100%);
+  color: white; border-radius: var(--radius); font-family: inherit; font-size: 15px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  letter-spacing: 0.02em; box-shadow: 0 2px 8px rgba(0,51,153,0.25); transition: transform 0.1s;
+}
+.btn-green:active { transform: scale(0.98); }
+.btn-outline {
+  padding: 10px 14px; border: 1.5px solid var(--rotary-blue);
+  background: white; color: var(--rotary-blue); border-radius: var(--radius);
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background 0.15s;
+}
+.btn-outline:hover { background: var(--rotary-blue-lt); }
+
+/* ─── Order list ───────────────────────────────────────── */
+.order-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.1s;
+}
+.order-item:last-child { border-bottom: none; }
+.order-item:active { background: var(--rotary-blue-lt); margin: 0 -16px; padding: 12px 16px; }
+.avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--rotary-blue) 0%, #1A4DB8 100%);
+  color: white; font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; border: 2px solid var(--rotary-gold);
+}
+.order-name { font-size: 14px; font-weight: 600; }
+.order-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.order-right { margin-left: auto; text-align: right; flex-shrink: 0; }
+.order-amount { font-size: 14px; font-weight: 700; color: var(--rotary-blue); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 3px; }
+.badge-ok   { background: var(--green-lt); color: var(--green); }
+.badge-wait { background: var(--amber-lt); color: var(--amber); }
+.badge-done { background: var(--blue-lt);  color: var(--blue); }
+
+/* ─── Bon de commande ──────────────────────────────────── */
+.bon-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding-bottom: 14px; border-bottom: 2px solid var(--rotary-blue);
+  margin-bottom: 14px; gap: 12px;
+}
+.bon-logo-zone { display: flex; align-items: center; gap: 10px; }
+.bon-title { font-family: 'Merriweather', serif; font-size: 14px; font-weight: 900; color: var(--rotary-blue); line-height: 1.35; }
+.bon-club-name { font-size: 10px; font-weight: 700; color: var(--rotary-gold); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.bon-ref   { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+.bon-section { margin-bottom: 12px; }
+.bon-section-lbl { font-size: 10px; font-weight: 700; color: var(--rotary-blue); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.bon-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+.bon-table th { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 6px; border-bottom: 1.5px solid var(--rotary-blue); }
+.bon-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); }
+.bon-total-row { display: flex; justify-content: space-between; padding: 8px 6px; background: var(--rotary-blue-lt); border-radius: 6px; margin-top: 6px; border-left: 3px solid var(--rotary-gold); }
+.bon-total-row .lbl { font-size: 13px; font-weight: 600; color: var(--rotary-blue); }
+.bon-total-row .val { font-size: 15px; font-weight: 800; color: var(--rotary-blue); font-family: 'Merriweather', serif; }
+.sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.sig-box { border: 1.5px dashed var(--border); border-radius: 8px; height: 60px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; }
+.sig-lbl { font-size: 10px; color: var(--muted); }
+
+/* ─── Signature pad ────────────────────────────────────── */
+.sig-pad-zone {
+  border: 2px dashed var(--rotary-blue);
+  border-radius: var(--radius);
+  background: var(--rotary-blue-lt);
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  user-select: none;
+}
+.sig-pad-zone canvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+  background: #fff;
+  border-radius: 8px;
+}
+.sig-pad-label {
+  font-size: 11px; color: var(--muted);
+  text-align: center; padding: 5px 0 8px;
+  font-style: italic;
+}
+.sig-pad-hint {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  opacity: 0.35; transition: opacity 0.2s;
+}
+.sig-pad-hint svg { width: 32px; height: 32px; color: var(--rotary-blue); }
+.sig-pad-hint span { font-size: 13px; font-weight: 500; color: var(--rotary-blue); }
+.sig-pad-hint.hidden { opacity: 0; }
+
+.sig-actions {
+  display: flex; gap: 8px; margin-top: 8px;
+}
+.sig-actions button { flex: 1; padding: 9px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.15s; }
+.btn-sig-clear { border: 1.5px solid #F0A0A0; background: var(--red-lt); color: var(--red); }
+.btn-sig-clear:hover { background: #f8d8d8; }
+.btn-sig-save { border: none; background: linear-gradient(135deg, var(--rotary-blue) 0%, var(--rotary-blue-dk) 100%); color: white; box-shadow: 0 2px 6px rgba(0,51,153,0.25); }
+.btn-sig-save:hover { opacity: 0.9; }
+.btn-sig-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.sig-saved-preview {
+  margin-top: 10px; display: none;
+  border: 2px solid var(--rotary-blue);
+  border-radius: 8px; overflow: hidden; background: #fff;
+}
+.sig-saved-preview img { width: 100%; display: block; }
+.sig-saved-label {
+  font-size: 11px; color: var(--green); font-weight: 600;
+  text-align: center; padding: 4px;
+  background: var(--green-lt);
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+
+/* ─── Toast ────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--rotary-blue); color: white;
+  padding: 10px 20px; border-radius: 24px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,51,153,0.3);
+  opacity: 0; transition: all 0.25s; z-index: 999; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.err  { background: var(--red); }
+
+/* ─── Config ───────────────────────────────────────────── */
+.cfg-section { font-size: 11px; font-weight: 700; color: var(--rotary-blue); text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 8px; }
+
+/* ─── Empty state ──────────────────────────────────────── */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+.empty-state svg { width: 40px; height: 40px; margin: 0 auto 10px; display: block; opacity: 0.4; }
+
+/* ─── Print ────────────────────────────────────────────── */
+@media print {
+  .app-header, .tab-bar, .no-print { display: none !important; }
+  .panel { display: block !important; padding: 0; }
+  .card { box-shadow: none; border: none; page-break-inside: avoid; }
+  #tab-bon { display: block !important; }
+  #tab-saisie, #tab-commandes, #tab-config { display: none !important; }
+  /* Afficher la signature dans le bon imprimé */
+  .bon-sig-img { display: block !important; }
+}
+
+/* ─── Grid 2 colonnes ──────────────────────────────────── */
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ─── Total bar amt ─────────────────────────────────────── */
+.total-bar .amt { font-family: 'Merriweather', serif; font-size: 24px; font-weight: 700; color: var(--rotary-gold); }
+
+/* ─── Config rows ───────────────────────────────────────── */
+.config-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.config-row:last-child { border-bottom: none; }
+.config-row label { font-size: 14px; font-weight: 500; }
+.config-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--rotary-blue); cursor: pointer; }
+
+/* ─── Signature dans le bon imprimé ─────────────────────── */
+.bon-sig-img {
+  width: 100%; max-height: 70px; object-fit: contain;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: #fff; display: none;
+}
+.bon-sig-placeholder {
+  height: 60px; border: 1.5px dashed var(--border);
+  border-radius: 8px; display: flex; align-items: flex-end;
+  justify-content: center; padding-bottom: 6px;
+}
+</style>
+</head>
+<body>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyralrvyUcH1TrKJ1gKI8h9Ryb8jxoemez5QPgzggPfKjB44NBrkpkjhYqqghx4rIBzOQ/exec";
+const CLUB_NAME = "Rotary Club de Fourmies-Hirson-Vervins";
+const CAMPAGNE_DEFAULT = "Noël 2026";
+let CAMPAGNE = localStorage.getItem('rotary_campagne') || CAMPAGNE_DEFAULT;
+let PRIX = [JSON.parse(localStorage.getItem('rotary_prix') || '58')];
+const POIDS = [1.0];
+const LABELS = ["Saumon entier 1kg"];
+</script>
+
+<!-- Header -->
+<div class="app-header">
+  <div class="header-wheel">
+    <img src="rotary-logo.png" width="44" height="44" alt="Rotary" style="display:block;">
+  </div>
+  <div class="header-text">
+    <div class="header-club">Rotary Club Fourmies-Hirson-Vervins</div>
+    <div class="header-title">🐟 Opération Saumons</div>
+    <div class="header-sub" id="hdr-sub">Noël 2026 · Collecte commandes</div>
+  </div>
+  <div class="sync-badge" id="sync-badge">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="sync-label">Local</span>
+  </div>
+</div>
+<div id="blocked-banner" style="display:none; background:#FCEBEB; border:1px solid #F0A0A0;
+  border-radius:10px; padding:12px 16px; margin-bottom:10px;
+  color:#A32D2D; font-size:13px; font-weight:600;
+  align-items:center; gap:8px;">
+  🔒 La prise de commandes est actuellement <strong>TERMINEE</strong> cette année.
+</div>
+
+<!-- Tab bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('saisie')" id="tbtn-saisie">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Saisie
+  </button>
+  <button class="tab-btn" onclick="switchTab('commandes')" id="tbtn-commandes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    Commandes
+  </button>
+  <button class="tab-btn" onclick="switchTab('bon')" id="tbtn-bon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Bon
+  </button>
+  <button class="tab-btn" onclick="switchTab('config')" id="tbtn-config">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+    Config
+  </button>
+</div>
+
+<div class="app">
+<div id="toast" class="toast"></div>
+
+<!-- ─── ONGLET SAISIE ─────────────────────────────────── -->
+<div id="tab-saisie" class="panel active">
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Rotarien vendeur
+    </div>
+    <div class="row2">
+      <div class="field"><label>Prénom</label><input type="text" id="rot-prenom" placeholder="Jean" autocomplete="given-name" /></div>
+      <div class="field"><label>Nom</label><input type="text" id="rot-nom" placeholder="Dupont" autocomplete="family-name" /></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Client
+    </div>
+    <div class="row2">
+      <div class="field"><label>Prénom</label><input type="text" id="cli-prenom" placeholder="Marie" /></div>
+      <div class="field"><label>Nom</label><input type="text" id="cli-nom" placeholder="Martin" /></div>
+    </div>
+    <div class="field"><label>Adresse complète</label><input type="text" id="cli-adresse" placeholder="12 rue des Acacias, 13000 Marseille" /></div>
+    <div class="row2">
+      <div class="field"><label>Téléphone</label><input type="tel" id="cli-tel" placeholder="06 12 34 56 78" /></div>
+      <div class="field"><label>Email</label><input type="email" id="cli-email" placeholder="marie@mail.com" /></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Produits commandés
+    </div>
+    <div id="qty-rows"></div>
+    <div class="total-bar">
+      <span class="lbl">⚖️ Poids : <strong id="total-kg">0,0 kg</strong></span>
+      <span class="amt" id="total-price">0 €</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row2">
+      <div class="field">
+        <label>Mode de paiement</label>
+        <select id="paiement">
+          <option value="especes">💵 Espèces</option>
+          <option value="cheque">📝 Chèque</option>
+          <option value="virement">🏦 Virement</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Statut</label>
+        <select id="statut">
+          <option value="en_attente">⏳ En attente</option>
+          <option value="payee">✅ Payée</option>
+          <option value="livree">📦 Livrée</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes / Remarques</label>
+      <textarea id="notes" placeholder="Livraison souhaitée, allergies, remarques particulières…"></textarea>
+    </div>
+  </div>
+
+  <div style="padding: 0 0 8px;">
+    <button class="btn-green" id="btn-save" onclick="saveOrder()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Enregistrer la commande
+    </button>
+  </div>
+</div>
+
+<!-- ─── ONGLET COMMANDES ──────────────────────────────── -->
+<div id="tab-commandes" class="panel">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="stat-count">0</div><div class="stat-lbl">Commandes</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-kg">0</div><div class="stat-lbl">kg total</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-ca">0</div><div class="stat-lbl">€ CA</div></div>
+  </div>
+  <div style="display:flex; gap:8px; margin-bottom:12px;">
+    <button class="btn-outline no-print" onclick="syncFromSheet()" style="flex:1">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      Actualiser
+    </button>
+    <button class="btn-outline no-print" onclick="exportCSV()" style="flex:1">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </button>
+  </div>
+  <div id="orders-container">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+      Aucune commande enregistrée
+    </div>
+  </div>
+</div>
+
+<!-- ─── ONGLET BON ────────────────────────────────────── -->
+<div id="tab-bon" class="panel">
+  <div class="card no-print">
+    <div class="field">
+      <label>Sélectionner une commande</label>
+      <select id="bon-select" onchange="renderBon()">
+        <option value="">— choisir une commande —</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="btn-outline" onclick="sendBonToClient()" style="flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Acheteur
+      </button>
+      <button class="btn-outline" onclick="shareBon()" style="flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Partager
+      </button>
+      <button class="btn-outline" onclick="sendBonToSheet()" style="flex:1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        → Tableur
+      </button>
+    </div>
+  </div>
+
+  <div class="card" id="bon-content" style="display:none">
+    <div class="bon-header">
+      <div class="bon-logo-zone">
+        <img src="rotary-logo.png" width="48" height="48" alt="Rotary" style="flex-shrink:0;display:block;">
+        <div>
+          <div class="bon-club-name" id="bon-club">Rotary Club de Fourmies-Hirson-Vervins</div>
+          <div class="bon-title">Bon de commande<br>🐟 Opération Saumons</div>
+          <div class="bon-ref" id="bon-ref">—</div>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:12px;color:#5A6478" id="bon-date">—</div>
+        <div style="font-size:11px;color:#5A6478" id="bon-campagne">Noël 2026</div>
+      </div>
+    </div>
+
+    <div class="bon-section">
+      <div class="bon-section-lbl">Rotarien vendeur</div>
+      <div style="font-size:14px;font-weight:500" id="bon-vendeur">—</div>
+    </div>
+
+    <div class="bon-section">
+      <div class="bon-section-lbl">Client</div>
+      <div style="font-size:15px;font-weight:600" id="bon-client">—</div>
+      <div style="font-size:13px;color:#6B7280;margin-top:2px" id="bon-adresse">—</div>
+      <div style="font-size:13px;color:#6B7280" id="bon-contact">—</div>
+    </div>
+
+    <div class="bon-section">
+      <div class="bon-section-lbl">Détail de la commande</div>
+      <table class="bon-table">
+        <thead><tr><th>Produit</th><th style="text-align:center">Qté</th><th style="text-align:right">P.U.</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody id="bon-lines"></tbody>
+      </table>
+      <div class="bon-total-row">
+        <span class="lbl" id="bon-kg">Poids —</span>
+        <span class="val" id="bon-montant">— €</span>
+      </div>
+    </div>
+
+    <div class="bon-section">
+      <div class="bon-section-lbl">Paiement</div>
+      <div style="font-size:14px" id="bon-paiement">—</div>
+    </div>
+
+    <div style="background:#F8F9FA;border-radius:8px;padding:10px;font-size:13px;color:#6B7280;display:none" id="bon-notes-wrap">
+      <strong>Notes :</strong> <span id="bon-notes"></span>
+    </div>
+
+    <!-- Signatures dans le bon (affichées à l'impression) -->
+    <div class="sig-grid">
+      <div>
+        <div class="bon-section-lbl">Signature client</div>
+        <img id="bon-sig-client-img" class="bon-sig-img" alt="Signature client" />
+        <div id="bon-sig-client-placeholder" class="bon-sig-placeholder">
+          <span class="sig-lbl">Signature</span>
+        </div>
+      </div>
+      <div>
+        <div class="bon-section-lbl">Signature rotarien</div>
+        <img id="bon-sig-rotarien-img" class="bon-sig-img" alt="Signature rotarien" />
+        <div id="bon-sig-rotarien-placeholder" class="bon-sig-placeholder">
+          <span class="sig-lbl">Signature</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Zone signature tactile ────────────────────────── -->
+  <div class="card no-print">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--rotary-gold)"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Signatures
+      <span id="sig-ok-badge" style="display:none;margin-left:auto;background:#003399;color:#fff;font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px">✓ Signé</span>
+    </div>
+
+    <!-- Tabs signatures -->
+    <div style="display:flex;gap:0;margin-bottom:12px;border:1.5px solid var(--border);border-radius:8px;overflow:hidden">
+      <button id="sig-tab-client" onclick="switchSigTab('client')"
+        style="flex:1;padding:8px;border:none;background:var(--rotary-blue);color:white;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+        ✍️ Client
+      </button>
+      <button id="sig-tab-rotarien" onclick="switchSigTab('rotarien')"
+        style="flex:1;padding:8px;border:none;background:var(--bg);color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+        🔑 Rotarien
+      </button>
+    </div>
+
+    <!-- Pad client -->
+    <div id="sig-panel-client">
+      <div class="sig-pad-zone">
+        <canvas id="sig-canvas-client" height="160"></canvas>
+        <div class="sig-pad-hint" id="sig-hint-client">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <span>Signez ici avec le doigt</span>
+        </div>
+      </div>
+      <div class="sig-pad-label">Zone de signature — client</div>
+      <div class="sig-actions">
+        <button class="btn-sig-clear" onclick="clearSig('client')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          Effacer
+        </button>
+        <button class="btn-sig-save" id="btn-save-sig-client" onclick="saveSig('client')" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Valider la signature
+        </button>
+      </div>
+      <div class="sig-saved-preview" id="sig-preview-client">
+        <img id="sig-preview-img-client" alt="Signature client validée" />
+        <div class="sig-saved-label">✓ Signature client enregistrée</div>
+      </div>
+    </div>
+
+    <!-- Pad rotarien -->
+    <div id="sig-panel-rotarien" style="display:none">
+      <div class="sig-pad-zone">
+        <canvas id="sig-canvas-rotarien" height="160"></canvas>
+        <div class="sig-pad-hint" id="sig-hint-rotarien">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <span>Signez ici avec le doigt</span>
+        </div>
+      </div>
+      <div class="sig-pad-label">Zone de signature — rotarien</div>
+      <div class="sig-actions">
+        <button class="btn-sig-clear" onclick="clearSig('rotarien')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          Effacer
+        </button>
+        <button class="btn-sig-save" id="btn-save-sig-rotarien" onclick="saveSig('rotarien')" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Valider la signature
+        </button>
+      </div>
+      <div class="sig-saved-preview" id="sig-preview-rotarien">
+        <img id="sig-preview-img-rotarien" alt="Signature rotarien validée" />
+        <div class="sig-saved-label">✓ Signature rotarien enregistrée</div>
+      </div>
+    </div>
+
+    <div id="sig-info" style="font-size:12px;color:var(--rotary-blue);margin-top:6px;display:none"></div>
+  </div>
+
+  <!-- Modification du statut -->
+  <div class="card no-print" style="margin-top:12px;">
+    <div class="card-title">Modifier le statut de la commande</div>
+    <div style="display:flex; gap:8px;">
+      <select id="bon-update-statut" style="flex:1;">
+        <option value="en_attente">⏳ En attente</option>
+        <option value="payee">✅ Payée</option>
+        <option value="livree">📦 Livrée</option>
+      </select>
+      <button class="btn-outline" onclick="changeOrderStatus()" style="background: var(--green-lt); color: var(--green); font-weight: 600;">
+        Mettre à jour
+      </button>
+    </div>
+  </div>
+
+</div><!-- fin #tab-bon -->
+
+<!-- ─── ONGLET CONFIG ──────────────────────────────────── -->
+<div id="tab-config" class="panel">
+  <div class="card">
+    <div class="card-title">Responsables des commandes</div>
+    <ul style="font-size:13px;color:#6B7280;line-height:1.9;padding-left:18px">
+      <li><strong style="color:#1A1A1A">Liné Bernard : </strong> 06.88.47.69.37</li>
+      <li><strong style="color:#1A1A1A">Dame Marie-Claire : </strong> 06.99.37.46.65</li>
+      <li><strong style="color:#1A1A1A">Jagielski Frédéric (application) : </strong> 06.85.72.93.97</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-title">Connexion Google Sheets</div>
+    <div class="field">
+      <input type="text" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;font-size:12px;font-family:'DM Mono',monospace" />
+    </div>
+    <div class="config-row">
+      <div><div class="config-label">Synchronisation auto</div></div>
+      <input type="checkbox" id="cfg-sync" checked />
+    </div>
+    <div class="config-row">
+      <div><div class="config-label">Mode hors-ligne</div></div>
+      <input type="checkbox" id="cfg-offline" checked />
+    </div>
+    <button class="btn-green" onclick="testConnection()" style="margin-top:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0114.08 0"/><path d="M1.42 9a16 16 0 0121.16 0"/><path d="M8.53 16.11a6 6 0 016.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+      Tester la connexion
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Données locales</div>
+    <div class="config-row">
+      <div>
+        <div class="config-label">Commandes en attente</div>
+        <div class="config-sub" id="queue-count">0 commande(s) à synchroniser</div>
+      </div>
+      <button class="btn-outline" onclick="flushQueue()">Envoyer</button>
+    </div>
+    <div class="config-row">
+      <div>
+        <div class="config-label">Vider les données locales</div>
+        <div class="config-sub">Supprime les commandes du téléphone</div>
+      </div>
+      <button class="btn-outline" onclick="clearLocal()" style="color:#A32D2D;border-color:#F0A0A0">Vider</button>
+    </div>
+  </div>
+</div>
+</div><!-- fin .app -->
+
+<!-- ════════════════════════════════════════════════════════ -->
+<script>
+// ─── State ──────────────────────────────────────────────────
+let orders = JSON.parse(localStorage.getItem('rotary_orders') || '[]');
+let queue  = JSON.parse(localStorage.getItem('rotary_queue')  || '[]');
+let scanQueue = JSON.parse(localStorage.getItem('rotary_scan_queue') || '[]');
+let orderCounter = parseInt(localStorage.getItem('rotary_counter') || '0');
+
+// Signatures en mémoire { client: dataUrl|null, rotarien: dataUrl|null }
+let currentSigs = { client: null, rotarien: null };
+// Etat du dessin
+const sigState = {
+  client:   { drawing: false, lastX: 0, lastY: 0, isEmpty: true },
+  rotarien: { drawing: false, lastX: 0, lastY: 0, isEmpty: true }
+};
+
+// ─── Init ────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  document.getElementById('hdr-sub').textContent = CAMPAGNE + ' · Collecte commandes';
+  const savedUrl = localStorage.getItem('rotary_url');
+  if (savedUrl) document.getElementById('cfg-url').value = savedUrl;
+
+  const savedPrenom = localStorage.getItem('rot_prenom');
+  const savedNom    = localStorage.getItem('rot_nom');
+  if (savedPrenom) document.getElementById('rot-prenom').value = savedPrenom;
+  if (savedNom)    document.getElementById('rot-nom').value    = savedNom;
+
+  document.getElementById('rot-prenom').addEventListener('input', e => localStorage.setItem('rot_prenom', e.target.value));
+  document.getElementById('rot-nom').addEventListener('input',    e => localStorage.setItem('rot_nom', e.target.value));
+
+  buildQtyRows();
+  updateSyncBadge('local');
+  updateQueueCount();
+  if (queue.length > 0) flushQueue();
+  if (savedPrenom || savedNom) syncFromSheet();
+  fetchPrixFromSheet();
+
+  // Init canvas signature
+  initSigCanvas('client');
+  initSigCanvas('rotarien');
+  window.addEventListener('resize', () => {
+    resizeSigCanvas('client');
+    resizeSigCanvas('rotarien');
+  });
+});
+
+// ─── Signature pad ───────────────────────────────────────────
+
+function initSigCanvas(who) {
+  const canvas = document.getElementById('sig-canvas-' + who);
+  resizeSigCanvas(who);
+
+  // Touch events
+  canvas.addEventListener('touchstart',  e => { e.preventDefault(); startDraw(who, e.touches[0]); },  { passive: false });
+  canvas.addEventListener('touchmove',   e => { e.preventDefault(); draw(who, e.touches[0]); },        { passive: false });
+  canvas.addEventListener('touchend',    e => { e.preventDefault(); endDraw(who); },                   { passive: false });
+  // Mouse events (desktop fallback)
+  canvas.addEventListener('mousedown',   e => startDraw(who, e));
+  canvas.addEventListener('mousemove',   e => draw(who, e));
+  canvas.addEventListener('mouseup',     e => endDraw(who));
+  canvas.addEventListener('mouseleave',  e => endDraw(who));
+}
+
+function resizeSigCanvas(who) {
+  const canvas = document.getElementById('sig-canvas-' + who);
+  const rect   = canvas.parentElement.getBoundingClientRect();
+  const dpr    = window.devicePixelRatio || 1;
+  canvas.width  = rect.width * dpr;
+  canvas.height = 160 * dpr;
+  canvas.style.height = '160px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.lineCap    = 'round';
+  ctx.lineJoin   = 'round';
+  ctx.lineWidth  = 2.5;
+  ctx.strokeStyle = '#001A66';
+}
+
+function getPos(canvas, e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width  / (rect.width  * (window.devicePixelRatio || 1));
+  const scaleY = canvas.height / (rect.height * (window.devicePixelRatio || 1));
+  return {
+    x: (e.clientX - rect.left),
+    y: (e.clientY - rect.top)
+  };
+}
+
+function startDraw(who, e) {
+  const canvas = document.getElementById('sig-canvas-' + who);
+  const pos    = getPos(canvas, e);
+  const st     = sigState[who];
+  st.drawing = true;
+  st.lastX   = pos.x;
+  st.lastY   = pos.y;
+  if (st.isEmpty) {
+    // hide hint
+    document.getElementById('sig-hint-' + who).classList.add('hidden');
+  }
+}
+
+function draw(who, e) {
+  const st = sigState[who];
+  if (!st.drawing) return;
+  const canvas = document.getElementById('sig-canvas-' + who);
+  const ctx    = canvas.getContext('2d');
+  const pos    = getPos(canvas, e);
+  ctx.beginPath();
+  ctx.moveTo(st.lastX, st.lastY);
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+  st.lastX = pos.x;
+  st.lastY = pos.y;
+  if (st.isEmpty) {
+    st.isEmpty = false;
+    document.getElementById('btn-save-sig-' + who).disabled = false;
+  }
+}
+
+function endDraw(who) {
+  sigState[who].drawing = false;
+}
+
+function clearSig(who) {
+  const canvas = document.getElementById('sig-canvas-' + who);
+  const dpr    = window.devicePixelRatio || 1;
+  canvas.getContext('2d').clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+  sigState[who].isEmpty = true;
+  document.getElementById('sig-hint-' + who).classList.remove('hidden');
+  document.getElementById('btn-save-sig-' + who).disabled = true;
+  // Reset preview
+  document.getElementById('sig-preview-' + who).style.display = 'none';
+  currentSigs[who] = null;
+  updateSigBadge();
+  // Reset bon
+  updateBonSig(who, null);
+  resizeSigCanvas(who);
+}
+
+function saveSig(who) {
+  const canvas = document.getElementById('sig-canvas-' + who);
+  // Crop la signature : trouver les pixels non-transparents
+  const dataUrl = cropSignature(canvas);
+  currentSigs[who] = dataUrl;
+
+  // Aperçu
+  const previewBox = document.getElementById('sig-preview-' + who);
+  const previewImg = document.getElementById('sig-preview-img-' + who);
+  previewImg.src = dataUrl;
+  previewBox.style.display = 'block';
+
+  updateSigBadge();
+  updateBonSig(who, dataUrl);
+  toast('Signature ' + (who === 'client' ? 'client' : 'rotarien') + ' validée ✓', 'ok');
+
+  // Montrer le bouton upload si les deux sont présentes
+  const hasBoth = currentSigs.client && currentSigs.rotarien;
+  document.getElementById('btn-upload-sigs').style.display = hasBoth ? 'flex' : 'none';
+
+  // Mémoriser dans la commande locale
+  const ref = document.getElementById('bon-select').value;
+  if (ref) {
+    const o = orders.find(x => x.ref === ref);
+    if (o) {
+      if (!o.signatures) o.signatures = {};
+      o.signatures[who] = dataUrl;
+      saveLocal();
+    }
+  }
+}
+
+function cropSignature(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const ctx  = canvas.getContext('2d');
+  const w    = canvas.width;
+  const h    = canvas.height;
+  const data = ctx.getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = 0, maxY = 0;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const a = data[(y * w + x) * 4 + 3];
+      if (a > 10) {
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX <= minX || maxY <= minY) return canvas.toDataURL('image/png');
+  const pad = 10;
+  minX = Math.max(0, minX - pad); minY = Math.max(0, minY - pad);
+  maxX = Math.min(w, maxX + pad); maxY = Math.min(h, maxY + pad);
+  const cropW = maxX - minX, cropH = maxY - minY;
+  const tmp = document.createElement('canvas');
+  tmp.width = cropW; tmp.height = cropH;
+  const tctx = tmp.getContext('2d');
+  tctx.fillStyle = '#ffffff';
+  tctx.fillRect(0, 0, cropW, cropH);
+  tctx.drawImage(canvas, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+  return tmp.toDataURL('image/png');
+}
+
+function updateBonSig(who, dataUrl) {
+  const img         = document.getElementById('bon-sig-' + who + '-img');
+  const placeholder = document.getElementById('bon-sig-' + who + '-placeholder');
+  if (dataUrl) {
+    img.src           = dataUrl;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+}
+
+function updateSigBadge() {
+  const badge = document.getElementById('sig-ok-badge');
+  const has   = currentSigs.client || currentSigs.rotarien;
+  badge.style.display = has ? 'inline' : 'none';
+  if (currentSigs.client && currentSigs.rotarien) {
+    badge.textContent = '✓ Signé (×2)';
+  } else if (has) {
+    badge.textContent = '✓ Partiel';
+  }
+}
+
+function switchSigTab(who) {
+  ['client', 'rotarien'].forEach(w => {
+    const active = (w === who);
+    document.getElementById('sig-panel-' + w).style.display = active ? 'block' : 'none';
+    const btn = document.getElementById('sig-tab-' + w);
+    btn.style.background = active ? 'var(--rotary-blue)' : 'var(--bg)';
+    btn.style.color      = active ? 'white' : 'var(--muted)';
+  });
+  // Resize au passage (le canvas était hidden)
+  setTimeout(() => resizeSigCanvas(who), 10);
+}
+
+// Upload les deux signatures comme une image composite vers Drive
+async function uploadSignatures() {
+  const ref = document.getElementById('bon-select').value;
+  if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
+  if (!currentSigs.client && !currentSigs.rotarien) { toast('Aucune signature à envoyer', 'err'); return; }
+
+  const url = getScriptUrl();
+  if (!url) { toast('URL Apps Script manquante', 'err'); return; }
+
+  const infoEl = document.getElementById('sig-info');
+  infoEl.style.display = 'block';
+  infoEl.style.color   = 'var(--rotary-blue)';
+  infoEl.textContent   = '⏳ Composition et envoi…';
+
+  try {
+    // Composer une image regroupant les deux signatures
+    const composite = await composeSigsImage(ref);
+    const o = orders.find(x => x.ref === ref);
+    const fileName = (o ? _bonFileName(o) : ref) + '_signatures.png';
+    const base64   = composite.split(',')[1];
+
+    const fileUrl  = await _uploadScanData(ref, fileName, base64, 'image/png');
+    if (o) { o.scan = fileUrl; saveLocal(); }
+    infoEl.textContent = '✓ Signatures envoyées → ' + ref;
+    document.getElementById('sig-ok-badge').style.display = 'inline';
+    toast('Signatures envoyées sur Drive ✓', 'ok');
+  } catch (err) {
+    infoEl.style.color = '#A32D2D';
+    infoEl.textContent = '⚠️ ' + err.message;
+    toast('Erreur envoi signatures', 'err');
+  }
+}
+
+async function composeSigsImage(ref) {
+  const o = orders.find(x => x.ref === ref);
+  const W = 800, H = 280, pad = 20;
+  const tmp = document.createElement('canvas');
+  tmp.width = W; tmp.height = H;
+  const ctx = tmp.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // Titre
+  ctx.fillStyle = '#003399';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText('Signatures — ' + (o ? o.ref + ' · ' + o.client : ref), pad, 24);
+  ctx.strokeStyle = '#D5DBE8';
+  ctx.beginPath(); ctx.moveTo(pad, 32); ctx.lineTo(W - pad, 32); ctx.stroke();
+
+  const drawSig = (dataUrl, label, x, y, w, h) => new Promise(res => {
+    ctx.fillStyle = '#F2F4F8';
+    ctx.strokeStyle = '#D5DBE8';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, w, h, 8) : ctx.rect(x, y, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#5A6478';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(label, x + 8, y + 16);
+    if (dataUrl) {
+      const img = new Image();
+      img.onload = () => { ctx.drawImage(img, x + 8, y + 22, w - 16, h - 30); res(); };
+      img.src = dataUrl;
+    } else {
+      ctx.fillStyle = '#aaa'; ctx.font = '13px sans-serif';
+      ctx.fillText('— non signé —', x + w/2 - 45, y + h/2 + 5);
+      res();
+    }
+  });
+
+  const colW = (W - pad * 3) / 2;
+  await drawSig(currentSigs.client,   'Signature client',   pad,         40, colW, H - 60);
+  await drawSig(currentSigs.rotarien, 'Signature rotarien', pad*2+colW,  40, colW, H - 60);
+
+  // Date
+  ctx.fillStyle = '#5A6478'; ctx.font = '10px sans-serif';
+  ctx.fillText(new Date().toLocaleString('fr-FR'), pad, H - 10);
+
+  return tmp.toDataURL('image/png');
+}
+
+// ─── Build product rows ──────────────────────────────────────
+function buildQtyRows() {
+  const container = document.getElementById('qty-rows');
+  container.innerHTML = LABELS.map((lbl, i) => `
+    <div class="qty-row">
+      <div style="flex:1;min-width:0">
+        <div class="qty-label">🐟 ${lbl}</div>
+        <div class="qty-price">${PRIX[i]} € / pièce</div>
+      </div>
+      <div class="qty-ctrl">
+        <button type="button" onclick="changeQty(${i},-1)">−</button>
+        <input type="number" id="qty${i}" value="0" min="0" max="999" oninput="updateTotal()" style="width:70px;min-width:70px;height:38px;font-size:18px;font-weight:700;text-align:center;border:1.5px solid var(--border);border-left:none;border-right:none;font-family:inherit;background:var(--surface);color:var(--text)" />
+        <button type="button" onclick="changeQty(${i},+1)">+</button>
+      </div>
+      <span class="qty-sub" id="sub${i}">—</span>
+    </div>`).join('');
+}
+
+function changeQty(i, delta) {
+  const el = document.getElementById('qty' + i);
+  el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
+  updateTotal();
+}
+
+function updateTotal() {
+  let total = 0, kg = 0;
+  LABELS.forEach((_, i) => {
+    const q = parseInt(document.getElementById('qty' + i).value) || 0;
+    const sub = q * PRIX[i];
+    total += sub; kg += q * POIDS[i];
+    document.getElementById('sub' + i).textContent = q > 0 ? sub + ' €' : '—';
+  });
+  document.getElementById('total-price').textContent = total + ' €';
+  document.getElementById('total-kg').textContent    = kg.toFixed(1) + ' kg';
+}
+
+// ─── Save order ──────────────────────────────────────────────
+async function saveOrder() {
+  const rp = v('rot-prenom'), rn = v('rot-nom');
+  const cp = v('cli-prenom'), cn = v('cli-nom');
+  if (!rp || !rn) { toast('Prénom/nom du rotarien requis', 'err'); return; }
+  if (!cp || !cn) { toast('Prénom/nom du client requis',   'err'); return; }
+  const qtys = LABELS.map((_, i) => parseInt(document.getElementById('qty' + i).value) || 0);
+  if (qtys.every(q => q === 0)) { toast('Ajoutez au moins un produit', 'err'); return; }
+
+  orderCounter++;
+  localStorage.setItem('rotary_counter', orderCounter);
+
+  const order = {
+    ref      : 'ROT-' + new Date().getFullYear() + '-' + String(orderCounter).padStart(3, '0'),
+    date     : new Date().toLocaleDateString('fr-FR'),
+    rotarien : rp + ' ' + rn,
+    client   : cp + ' ' + cn,
+    adresse  : v('cli-adresse'),
+    tel      : v('cli-tel'),
+    email    : v('cli-email'),
+    qtys,
+    total    : qtys.reduce((s, q, i) => s + q * PRIX[i], 0),
+    kg       : parseFloat(qtys.reduce((s, q, i) => s + q * POIDS[i], 0).toFixed(2)),
+    paiement : document.getElementById('paiement').value,
+    statut   : document.getElementById('statut').value,
+    notes    : v('notes'),
+    scan     : null,
+    signatures: {}
+  };
+
+  orders.push(order);
+  saveLocal();
+
+  // Basculer immédiatement sur le bon AVANT le sync (l'utilisateur ne voit pas le formulaire se vider)
+  updateBonSelect();
+  openBon(order.ref);
+  resetForm();
+  toast('✓ ' + order.ref + ' enregistrée — signez le bon !', 'ok');
+
+  // Sync en arrière-plan
+  const url = getScriptUrl();
+  if (url && document.getElementById('cfg-sync').checked) {
+    syncOrder(order, url);
+  } else {
+    queue.push(order);
+    saveQueue();
+    updateQueueCount();
+    updateSyncBadge('local');
+  }
+}
+
+async function syncOrder(order, url) {
+  updateSyncBadge('syncing');
+  try {
+    const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'save_order', data: order }) });
+    const data = await res.json();
+    if (data.success) { updateSyncBadge('ok'); toast('Synchronisé ✓', 'ok'); }
+    else throw new Error(data.message);
+  } catch (err) {
+    queue.push(order); saveQueue(); updateQueueCount(); updateSyncBadge('err');
+    toast('Hors-ligne — file d\'attente', 'err');
+  }
+}
+
+async function flushQueue() {
+  const url = getScriptUrl(); if (!url) return;
+  updateSyncBadge('syncing');
+  if (queue.length > 0) {
+    const failed = [];
+    for (const order of queue) {
+      try {
+        const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'save_order', data: order }) });
+        const data = await res.json();
+        if (!data.success) failed.push(order);
+      } catch (_) { failed.push(order); }
+    }
+    queue = failed; saveQueue(); updateQueueCount();
+  }
+  updateSyncBadge(queue.length === 0 ? 'ok' : 'err');
+}
+
+async function syncFromSheet() {
+  const dot = document.getElementById('sync-dot'), lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot spin'; lbl.textContent = 'Sync...';
+
+  // Nom du rotarien tel que saisi — on le normalise pour la comparaison
+  const rotarienName = (document.getElementById('rot-prenom').value.trim() + ' ' + document.getElementById('rot-nom').value.trim()).trim();
+  const normalize = s => (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+  const refName   = normalize(rotarienName);
+
+  const url = getScriptUrl();
+  if (!url) { dot.className = 'sync-dot err'; lbl.textContent = 'Erreur'; toast('URL Apps Script manquante', 'err'); return; }
+
+  fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_orders', rotarien: rotarienName }) })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        // Filtre strict côté client : correspondance exacte (insensible à la casse et aux accents)
+        const filtered = refName
+          ? res.orders.filter(o => normalize(o.rotarien) === refName)
+          : res.orders;
+        orders = filtered;
+        saveLocal(); renderOrders();
+        dot.className = 'sync-dot ok'; lbl.textContent = 'À jour';
+        toast('Synchronisé ✓ — ' + filtered.length + ' commande(s)', 'ok');
+      } else throw new Error(res.message);
+    })
+    .catch(() => { dot.className = 'sync-dot err'; lbl.textContent = 'Erreur'; toast('Erreur de synchronisation', 'err'); });
+}
+
+async function testConnection() {
+  const url = document.getElementById('cfg-url').value.trim();
+  if (!url) { toast('Entrez l\'URL Apps Script', 'err'); return; }
+  localStorage.setItem('rotary_url', url);
+  updateSyncBadge('syncing');
+  try {
+    const res = await fetch(url); const data = await res.json();
+    if (data.status === 'ok') { updateSyncBadge('ok'); toast('Connexion établie ✓', 'ok'); }
+    else throw new Error();
+  } catch (_) { updateSyncBadge('err'); toast('Connexion échouée', 'err'); }
+}
+
+function renderOrders() {
+  const c = document.getElementById('orders-container');
+  if (!orders.length) {
+    c.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>Aucune commande</div>';
+    updateStats(); return;
+  }
+  c.innerHTML = [...orders].reverse().map(o => {
+    const initials = o.client.split(' ').map(w => w[0]||'').join('').slice(0,2).toUpperCase();
+    const statut = (o.statut||'').toLowerCase().trim();
+    const badgeCls = statut==='payee'?'badge-ok':statut==='livree'?'badge-done':'badge-wait';
+    const badgeLbl = statut==='payee'?'Payée':statut==='livree'?'Livrée':'En attente';
+    const kg = parseFloat(o.kg)>0 ? parseFloat(o.kg) : (o.qtys||[]).reduce((s,q,i)=>s+(parseInt(q)||0)*(POIDS[i]||1),0);
+    return `<div class="order-item" onclick="openBon('${o.ref}')">
+      <div class="avatar">${initials}</div>
+      <div><div class="order-name">${o.client}</div><div class="order-meta">${o.ref} · ${o.rotarien} · ${kg.toFixed(2)} kg</div></div>
+      <div class="order-right"><div class="order-amount">${parseFloat(o.total||0).toFixed(2)} €</div><span class="badge ${badgeCls}">${badgeLbl}</span></div>
+    </div>`;
+  }).join('');
+  updateStats(); updateBonSelect();
+}
+
+function updateStats() {
+  document.getElementById('stat-count').textContent = orders.length;
+  const totalKg = orders.reduce((s,o)=>{const k=parseFloat(o.kg);return k>0?s+k:s+(o.qtys||[]).reduce((ks,q,i)=>ks+(parseInt(q)||0)*(POIDS[i]||1),0);},0);
+  document.getElementById('stat-kg').textContent = totalKg.toFixed(1);
+  document.getElementById('stat-ca').textContent = orders.reduce((s,o)=>s+(parseFloat(o.total)||0),0).toFixed(2);
+}
+
+function updateBonSelect() {
+  const sel = document.getElementById('bon-select'), cur = sel.value;
+  sel.innerHTML = '<option value="">— choisir une commande —</option>' + [...orders].reverse().map(o=>`<option value="${o.ref}">${o.ref} — ${o.client}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function openBon(ref) {
+  switchTab('bon');
+  document.getElementById('bon-select').value = ref;
+  renderBon();
+}
+
+function renderBon() {
+  const ref = document.getElementById('bon-select').value;
+  const content = document.getElementById('bon-content');
+  if (!ref) { content.style.display = 'none'; return; }
+  const o = orders.find(x => x.ref === ref);
+  if (!o) return;
+  content.style.display = 'block';
+  document.getElementById('bon-ref').textContent     = 'Réf : ' + o.ref;
+  document.getElementById('bon-club').textContent    = 'Rotary Club de Fourmies-Hirson-Vervins';
+  const rawDate = o.date||'';
+  document.getElementById('bon-date').textContent    = rawDate.includes('T') ? new Date(rawDate).toLocaleDateString('fr-FR') : rawDate||new Date().toLocaleDateString('fr-FR');
+  document.getElementById('bon-campagne').textContent= CAMPAGNE;
+  document.getElementById('bon-vendeur').textContent = o.rotarien;
+  document.getElementById('bon-client').textContent  = o.client;
+  document.getElementById('bon-adresse').textContent = o.adresse||'—';
+  document.getElementById('bon-contact').textContent = [o.tel,o.email].filter(Boolean).join(' · ')||'—';
+  document.getElementById('bon-paiement').textContent= {especes:'💵 Espèces',cheque:'📝 Chèque',virement:'🏦 Virement'}[o.paiement]||'—';
+  const statutSel = document.getElementById('bon-update-statut');
+  if (statutSel && o.statut) statutSel.value = o.statut;
+  const bonKg = o.kg>0 ? parseFloat(o.kg) : (o.qtys||[]).reduce((s,q,i)=>s+(parseInt(q)||0)*(POIDS[i]||1),0);
+  document.getElementById('bon-kg').textContent     = 'Poids total : ' + bonKg.toFixed(1) + ' kg';
+  document.getElementById('bon-montant').textContent= 'Total : ' + o.total + ' €';
+  const notesWrap = document.getElementById('bon-notes-wrap');
+  if (o.notes) { document.getElementById('bon-notes').textContent = o.notes; notesWrap.style.display = 'block'; }
+  else notesWrap.style.display = 'none';
+  document.getElementById('bon-lines').innerHTML = o.qtys.map((q,i)=>q>0?`<tr><td>${LABELS[i]}</td><td style="text-align:center">${q}</td><td style="text-align:right">${PRIX[i]} €</td><td style="text-align:right">${q*PRIX[i]} €</td></tr>`:'').join('')||'<tr><td colspan="4" style="color:#6B7280">—</td></tr>';
+
+  // Restaurer les signatures si enregistrées localement
+  currentSigs = { client: null, rotarien: null };
+  if (o.signatures) {
+    if (o.signatures.client)   { currentSigs.client   = o.signatures.client;   }
+    if (o.signatures.rotarien) { currentSigs.rotarien = o.signatures.rotarien; }
+  }
+  updateBonSig('client',   currentSigs.client);
+  updateBonSig('rotarien', currentSigs.rotarien);
+
+  // Reset les pads
+  ['client','rotarien'].forEach(w => {
+    clearSig(w);
+    if (currentSigs[w]) {
+      document.getElementById('sig-preview-img-' + w).src = currentSigs[w];
+      document.getElementById('sig-preview-' + w).style.display = 'block';
+      document.getElementById('sig-ok-badge').style.display = 'inline';
+    }
+  });
+  updateSigBadge();
+}
+
+// ─── Capture du bon (html2canvas) ─────────────────────────────
+async function _captureBonBase64() {
+  const bonEl = document.getElementById('bon-content');
+  if (window.html2canvas) {
+    const canvas = await html2canvas(bonEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+  }
+  return null;
+}
+
+function _bonFileName(o) {
+  const clean = s => (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  const parts = (o.client||'').trim().split(/\s+/);
+  const prenom = clean(parts.slice(1).join(' ')||parts[0]);
+  const nom    = clean(parts[0]);
+  const vendeur = clean(((o.rotarien||'').trim().split(/\s+/)[0]));
+  const d = new Date();
+  const date = d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+  return nom+'-'+prenom+'-'+vendeur+'-'+date;
+}
+
+async function shareBon() {
+  const ref = document.getElementById('bon-select').value;
+  if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
+  const o = orders.find(x => x.ref === ref); if (!o) return;
+  const text = ['Club Rotary — Saumon fumé '+CAMPAGNE,'Réf : '+o.ref,'Client : '+o.client,'Total : '+o.total+' €','Paiement : '+(o.paiement||'—')].join('\n');
+
+  toast('⏳ Génération du bon…', 'ok');
+  const base64 = await _captureBonBase64();
+
+  // Envoi automatique au tableur (await pour Safari/iOS)
+  await _autoSendToSheet(ref, o, base64);
+
+  if (navigator.share && base64) {
+    try {
+      const file = new File([Uint8Array.from(atob(base64),c=>c.charCodeAt(0))], _bonFileName(o)+'.jpg', {type:'image/jpeg'});
+      if (navigator.canShare && navigator.canShare({files:[file]})) {
+        await navigator.share({title:'Bon '+ref, text, files:[file]});
+        return;
+      }
+    } catch(e) { if (e.name === 'AbortError') return; }
+    try { await navigator.share({title:'Bon '+ref, text}); return; } catch(_) {}
+  }
+  window.print();
+}
+
+async function sendBonToClient() {
+  const ref = document.getElementById('bon-select').value;
+  if (!ref) { toast('Sélectionnez une commande', 'err'); return; }
+  const o = orders.find(x => x.ref === ref); if (!o) return;
+
+  const email = o.email || '';
+  if (!email) { toast('Pas d\'email renseigné pour ce client', 'err'); return; }
+
+  toast('⏳ Génération du PDF…', 'ok');
+
+  // ── 1. Capturer le bon et générer le PDF ──────────────────
+  let pdfBlob = null;
+  const pdfFileName = (_bonFileName(o) || ref) + '.pdf';
+  let base64Img = null;
+
+  try {
+    const bonEl = document.getElementById('bon-content');
+    const canvas = await html2canvas(bonEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    base64Img = canvas.toDataURL('image/jpeg', 0.92);
+    const { jsPDF } = window.jspdf;
+    const pdf    = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW  = pdf.internal.pageSize.getWidth();
+    const pageH  = pdf.internal.pageSize.getHeight();
+    const margin = 10, imgW = pageW - margin * 2;
+    const imgH   = (canvas.height * imgW) / canvas.width;
+    pdf.addImage(base64Img, 'JPEG', margin, margin, imgW, Math.min(imgH, pageH - margin * 2));
+    pdfBlob = pdf.output('blob');
+  } catch (err) { toast('Erreur PDF : ' + err.message, 'err'); return; }
+
+  // ── 2. Préparer le corps du mail ──────────────────────────
+  const paiementLabel = {especes:'Espèces',cheque:'Chèque',virement:'Virement'}[o.paiement] || o.paiement || '—';
+  const lignes = (o.qtys||[]).map((q,i)=>q>0?`  - ${LABELS[i]} × ${q} = ${q*PRIX[i]} €`:'').filter(Boolean).join('\n');
+  const sujet  = '[Rotary ' + CLUB_NAME + '] Votre bon de commande — Saumon fumé ' + CAMPAGNE;
+  const corps  =
+    'Bonjour ' + (o.client||'') + ',\n\n' +
+    'Veuillez trouver en pièce jointe votre bon de commande de saumon fumé\n' +
+    'dans le cadre de l\'Opération Saumons ' + CAMPAGNE + ' du Rotary Club de Fourmies-Hirson-Vervins.\n\n' +
+    '──────────────────────────────\n' +
+    'Référence   : ' + o.ref + '\n' +
+    'Date        : ' + (o.date||new Date().toLocaleDateString('fr-FR')) + '\n' +
+    'Rotarien    : ' + (o.rotarien||'—') + '\n' +
+    '──────────────────────────────\n' +
+    'Commande :\n' + lignes + '\n' +
+    'Poids total : ' + (o.kg||0) + ' kg\n' +
+    'TOTAL       : ' + o.total + ' €\n' +
+    'Paiement    : ' + paiementLabel + '\n' +
+    (o.notes ? 'Notes       : ' + o.notes + '\n' : '') +
+    '──────────────────────────────\n\n' +
+    'Merci pour votre soutien au Rotary Club de Fourmies-Hirson-Vervins !\n\n' +
+    'Cordialement,\n' + (o.rotarien||'Le Rotary Club');
+
+  // ── 3. Envoi au tableur d'abord (terminé avant le mailto) ─
+  if (base64Img) await _autoSendToSheet(ref, o, base64Img.split(',')[1]);
+
+  // ── 4. Télécharger le PDF sur l'appareil ──────────────────
+  const blobUrl = URL.createObjectURL(pdfBlob);
+  const a = Object.assign(document.createElement('a'), { href: blobUrl, download: pdfFileName });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+
+  // ── 5. Ouvrir le mail ─────────────────────────────────────
+  setTimeout(() => {
+    const mailtoUrl = 'mailto:' + email
+      + '?subject=' + encodeURIComponent(sujet)
+      + '&body='    + encodeURIComponent(corps + '\n\n');
+    window.location.href = mailtoUrl;
+  }, 400);
+
+  toast('PDF téléchargé — mail prêt à envoyer ✓', 'ok');
+}
+
+// ── Envoi silencieux au tableur (appelé automatiquement) ──────
+async function _autoSendToSheet(ref, o, base64) {
+  const url = getScriptUrl();
+  if (!url || !base64) return;
+  const infoEl = document.getElementById('sig-info');
+  try {
+    const b64 = base64.includes(',') ? base64.split(',')[1] : base64;
+    const fileUrl = await _uploadScanData(ref, _bonFileName(o) + '.jpg', b64, 'image/jpeg');
+    o.scan = fileUrl; saveLocal();
+    if (infoEl) { infoEl.style.display='block'; infoEl.style.color='var(--rotary-blue)'; infoEl.textContent='✓ Bon enregistré dans le tableur'; }
+  } catch(_) {
+    if (infoEl) { infoEl.style.display='block'; infoEl.style.color='#A32D2D'; infoEl.textContent='⚠️ Tableur non mis à jour (hors-ligne ?)'; }
+  }
+}
+
+async function sendBonToSheet() {
+  const ref = document.getElementById('bon-select').value;
+  if (!ref) { toast('Sélectionnez une commande','err'); return; }
+  const o = orders.find(x=>x.ref===ref); if (!o) return;
+  const url = getScriptUrl(); if (!url) { toast('URL Apps Script manquante','err'); return; }
+  toast('Génération du bon…','ok');
+  const base64 = await _captureBonBase64();
+  if (!base64) { toast('Impossible de générer l\'image','err'); return; }
+  const infoEl = document.getElementById('sig-info');
+  infoEl.style.display='block'; infoEl.style.color='var(--rotary-blue)'; infoEl.textContent='⏳ Envoi…';
+  try {
+    const fileUrl = await _uploadScanData(ref, _bonFileName(o)+'.jpg', base64, 'image/jpeg');
+    if (o) { o.scan=fileUrl; saveLocal(); }
+    infoEl.textContent='✓ Bon envoyé → '+ref;
+    toast('Bon envoyé ✓','ok');
+  } catch(err) {
+    infoEl.style.color='#A32D2D'; infoEl.textContent='⚠️ '+err.message; toast('Erreur envoi','err');
+  }
+}
+
+// ─── Upload helpers ───────────────────────────────────────────
+async function _uploadScanData(ref, fileName, base64, mimeType) {
+  const url = getScriptUrl(); if (!url) throw new Error('no_url');
+  let rawText = '';
+  try {
+    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({action:'upload_scan',ref,fileName,fileData:base64,mimeType}) });
+    rawText = await res.text();
+    const data = JSON.parse(rawText);
+    if (!data.success) throw new Error(data.message||data.error||'erreur serveur');
+    return data.url;
+  } catch(err) {
+    throw new Error((err.message||'erreur réseau') + (rawText?' | '+rawText.slice(0,200):''));
+  }
+}
+
+// ─── Export CSV ──────────────────────────────────────────────
+function exportCSV() {
+  if (!orders.length) { toast('Aucune commande à exporter','err'); return; }
+  const header = 'Référence,Date,Rotarien,Client,Adresse,Téléphone,Email,'+LABELS.map(l=>'"'+l+'"').join(',')+',Poids (kg),Total (€),Paiement,Statut,Notes';
+  const rows = orders.map(o=>[o.ref,o.date,o.rotarien,o.client,o.adresse,o.tel,o.email,...o.qtys,o.kg,o.total,o.paiement,o.statut,o.notes].map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(','));
+  const csv = [header,...rows].join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'),{href:url,download:'commandes-saumon-'+CAMPAGNE.replace(/\s/g,'-')+'.csv'});
+  a.click(); URL.revokeObjectURL(url); toast('Export CSV ✓','ok');
+}
+
+// ─── Helpers ─────────────────────────────────────────────────
+function v(id) { return document.getElementById(id).value.trim(); }
+function resetForm() {
+  ['cli-prenom','cli-nom','cli-adresse','cli-tel','cli-email','notes'].forEach(id=>document.getElementById(id).value='');
+  LABELS.forEach((_,i)=>{ document.getElementById('qty'+i).value=0; document.getElementById('sub'+i).textContent='—'; });
+  document.getElementById('total-price').textContent='0 €';
+  document.getElementById('total-kg').textContent='0,0 kg';
+}
+function saveLocal()  { localStorage.setItem('rotary_orders', JSON.stringify(orders)); }
+function saveQueue()  { localStorage.setItem('rotary_queue',  JSON.stringify(queue)); }
+function getScriptUrl() { return document.getElementById('cfg-url').value.trim()||localStorage.getItem('rotary_url')||APPS_SCRIPT_URL; }
+function updateSyncBadge(state) {
+  const dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-label');
+  dot.className='sync-dot';
+  if(state==='ok'){dot.classList.add('ok');lbl.textContent='Synchro ✓';}
+  else if(state==='err'){dot.classList.add('err');lbl.textContent='Hors-ligne';}
+  else if(state==='syncing'){dot.classList.add('spin');lbl.textContent='Sync…';}
+  else{lbl.textContent='Local';}
+}
+function updateQueueCount() {
+  document.getElementById('queue-count').textContent = queue.length===0?'0 élément à synchroniser':queue.length+' commande(s) à synchroniser';
+}
+function clearLocal() {
+  if(!confirm('Vider toutes les commandes locales ?')) return;
+  orders=[];queue=[];orderCounter=0;
+  localStorage.removeItem('rotary_orders');localStorage.removeItem('rotary_queue');localStorage.removeItem('rotary_counter');
+  renderOrders(); updateQueueCount(); toast('Données effacées','ok');
+}
+function switchTab(name) {
+  ['saisie','commandes','bon','config'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.remove('active');
+    document.getElementById('tbtn-'+t).classList.remove('active');
+  });
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('tbtn-'+name).classList.add('active');
+  if(name==='commandes') renderOrders();
+  if(name==='bon') updateBonSelect();
+}
+
+let toastTimer;
+function toast(msg,type='ok') {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast '+type+' show';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+async function fetchPrixFromSheet() {
+  const url=getScriptUrl(); if(!url) return;
+  try {
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'get_price'})});
+    const data=await res.json();
+    if(data.success&&!isNaN(parseFloat(data.price))){PRIX[0]=parseFloat(data.price);localStorage.setItem('rotary_prix',JSON.stringify(PRIX[0]));buildQtyRows();updateTotal();}
+    if(data.campagne){CAMPAGNE=data.campagne;localStorage.setItem('rotary_campagne',data.campagne);document.getElementById('hdr-sub').textContent=data.campagne+' · Collecte commandes';}
+  } catch(_) {}
+  await syncCounter();
+  await checkBlocked();
+}
+
+async function checkBlocked() {
+  const url=getScriptUrl(); if(!url) return;
+  try {
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'get_blocked'})});
+    const data=await res.json();
+    applyBlocked(data.blocked===true);
+  } catch(_) {}
+}
+
+function applyBlocked(blocked) {
+  const btn=document.getElementById('btn-save'),banner=document.getElementById('blocked-banner');
+  if(blocked){btn.disabled=true;btn.style.opacity='0.4';btn.style.cursor='not-allowed';if(banner)banner.style.display='flex';}
+  else{btn.disabled=false;btn.style.opacity='';btn.style.cursor='';if(banner)banner.style.display='none';}
+}
+
+async function syncCounter() {
+  const url=getScriptUrl(); if(!url) return;
+  try {
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'get_last_counter'})});
+    const data=await res.json();
+    if(data.success&&data.counter>=orderCounter){orderCounter=data.counter;localStorage.setItem('rotary_counter',orderCounter);}
+  } catch(_) {}
+}
+
+async function changeOrderStatus() {
+  const ref=document.getElementById('bon-select').value;
+  if(!ref){toast('Sélectionnez une commande','err');return;}
+  const nouveauStatut=document.getElementById('bon-update-statut').value;
+  const url=getScriptUrl(); if(!url){toast('URL Apps Script manquante','err');return;}
+  updateSyncBadge('syncing');
+  try {
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'update_status',ref,statut:nouveauStatut})});
+    const data=await res.json();
+    if(data.success){
+      const idx=orders.findIndex(x=>x.ref===ref);
+      if(idx!==-1){orders[idx].statut=nouveauStatut;saveLocal();}
+      updateSyncBadge('ok');toast('Statut mis à jour ✓','ok');
+    } else throw new Error(data.message);
+  } catch(err){updateSyncBadge('err');toast('Erreur de mise à jour','err');}
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
