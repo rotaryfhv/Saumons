@@ -333,6 +333,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyralrvyUcH1TrK
 const CLUB_NAME = "Rotary Club de Fourmies-Hirson-Vervins";
 const CAMPAGNE_DEFAULT = "Noël 2026";
 let CAMPAGNE = localStorage.getItem('rotary_campagne') || CAMPAGNE_DEFAULT;
+let RIB = localStorage.getItem('rotary_rib') || '';
 let PRIX = [JSON.parse(localStorage.getItem('rotary_prix') || '58')];
 const POIDS = [1.0];
 const LABELS = ["Saumon entier 1kg"];
@@ -1351,6 +1352,7 @@ async function sendBonToClient() {
     'Poids total : ' + (o.kg||0) + ' kg\n' +
     'TOTAL       : ' + o.total + ' €\n' +
     'Paiement    : ' + paiementLabel + '\n' +
+    (o.paiement === 'virement' && RIB ? 'RIB         : ' + RIB + '\n' : '') +
     (o.notes ? 'Notes       : ' + o.notes + '\n' : '') +
     '──────────────────────────────\n\n' +
     'Merci pour votre soutien au Rotary Club de Fourmies-Hirson-Vervins !\n\n' +
@@ -1492,6 +1494,7 @@ async function fetchPrixFromSheet() {
     const data=await res.json();
     if(data.success&&!isNaN(parseFloat(data.price))){PRIX[0]=parseFloat(data.price);localStorage.setItem('rotary_prix',JSON.stringify(PRIX[0]));buildQtyRows();updateTotal();}
     if(data.campagne){CAMPAGNE=data.campagne;localStorage.setItem('rotary_campagne',data.campagne);document.getElementById('hdr-sub').textContent=data.campagne+' · Collecte commandes';}
+    if(data.RIB){RIB=data.RIB;localStorage.setItem('rotary_rib',data.RIB);}
   } catch(_) {}
   await syncCounter();
   await checkBlocked();
